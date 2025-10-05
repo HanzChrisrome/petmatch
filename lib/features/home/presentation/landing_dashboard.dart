@@ -96,7 +96,7 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
           ],
         ),
       ),
-      bottomNavigationBar: const CustomBottomNav(currentIndex: 1),
+      bottomNavigationBar: const CustomBottomNav(currentIndex: 0),
     );
   }
 
@@ -395,7 +395,8 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
           Expanded(
             flex: 1,
             child: Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -410,7 +411,6 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
                   Text(
                     '${pet['gender']}  ${pet['age']}',
                     style: TextStyle(

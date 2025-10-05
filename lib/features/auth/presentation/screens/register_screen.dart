@@ -39,6 +39,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final authStateNotifier = ref.read(authProvider.notifier);
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -56,26 +58,28 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   child: Column(
                     children: [
                       AnimatedCrossFade(
-                        firstChild: const Padding(
-                          padding: EdgeInsets.only(top: 50),
+                        firstChild: Padding(
+                          padding:
+                              EdgeInsets.only(top: isSmallScreen ? 30 : 50),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Image(
+                              const Image(
                                 image: AssetImage('assets/petmatch_logo.png'),
                                 height: 84,
                                 fit: BoxFit.contain,
                               ),
-                              SizedBox(height: 20),
-                              Text(
-                                'Your journey starts here\nTake the first step',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  height: 1.1,
-                                  fontWeight: FontWeight.bold,
+                              SizedBox(height: isSmallScreen ? 12 : 20),
+                              if (!isSmallScreen)
+                                const Text(
+                                  'Your journey starts here\nTake the first step',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    height: 1.1,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                textAlign: TextAlign.center,
-                              ),
                             ],
                           ),
                         ),
@@ -87,13 +91,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         sizeCurve: Curves.easeInOut,
                       ),
 
-                      const SizedBox(height: 70),
+                      SizedBox(height: isSmallScreen ? 30 : 70),
                       Center(
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 420),
                           child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 24.0),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: isSmallScreen ? 20.0 : 24.0),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -121,7 +125,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                   isPasswordField: true,
                                   prefixIcon: Icons.lock,
                                 ),
-                                const SizedBox(height: 20),
+                                SizedBox(height: isSmallScreen ? 16 : 20),
                                 CustomButton(
                                   label: 'Sign up',
                                   onPressed: () {
@@ -133,13 +137,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                         confirmPasswordController.text);
                                   },
                                   horizontalPadding: 0,
-                                  verticalPadding: 12,
+                                  verticalPadding: isSmallScreen ? 10 : 12,
                                 ),
-                                const SizedBox(height: 20),
+                                SizedBox(height: isSmallScreen ? 16 : 20),
                                 Text(
                                   "By creating an account, you agree to our \nterms and conditions",
                                   textAlign: TextAlign.center,
-                                  style: Theme.of(context).textTheme.bodyMedium,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                        fontSize: isSmallScreen ? 13 : null,
+                                      ),
                                 ),
                               ],
                             ),

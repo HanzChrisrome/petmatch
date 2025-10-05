@@ -7,7 +7,8 @@ var lColorScheme = ColorScheme.fromSeed(
   onPrimary: const Color(0xFF1B7A75), // White text/icons on teal
   secondary: const Color(0xFFFF6F61), // Coral → secondary CTAs, warmth
   onSecondary: Colors.white, // White text/icons on coral
-  surface: const Color(0xFFFEEEEE), // Light warm gray for surfaces/cards
+  surface: const Color.fromARGB(
+      255, 240, 240, 240), // Light warm gray for surfaces/cards
   onSurface: const Color(0xFF333333), // Charcoal gray text for readability
   error: const Color(0xFFD32F2F), // Red for errors (material standard)
   onError: Colors.white,

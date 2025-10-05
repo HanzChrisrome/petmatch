@@ -40,6 +40,9 @@ class _GetStartedScreenState extends State<GetStartedScreen>
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: Stack(
@@ -58,8 +61,8 @@ class _GetStartedScreenState extends State<GetStartedScreen>
             },
             child: Image.asset(
               'assets/get_started_screen/paws.png',
-              width: 80,
-              height: 80,
+              width: isSmallScreen ? 60 : 80,
+              height: isSmallScreen ? 60 : 80,
             ),
           ),
 
@@ -99,8 +102,8 @@ class _GetStartedScreenState extends State<GetStartedScreen>
             },
             child: Image.asset(
               'assets/get_started_screen/paws.png',
-              width: 100,
-              height: 100,
+              width: isSmallScreen ? 75 : 100,
+              height: isSmallScreen ? 75 : 100,
             ),
           ),
 
@@ -108,14 +111,14 @@ class _GetStartedScreenState extends State<GetStartedScreen>
           Positioned.fill(
             child: Column(
               children: [
-                const SizedBox(height: 80),
+                SizedBox(height: isSmallScreen ? 40 : 80),
 
                 Image.asset(
                   "assets/petmatch_logo.png",
-                  height: 140,
+                  height: isSmallScreen ? 100 : 140,
                 ),
 
-                const SizedBox(height: 24),
+                SizedBox(height: isSmallScreen ? 16 : 24),
 
                 // Tagline
                 Padding(
@@ -129,7 +132,7 @@ class _GetStartedScreenState extends State<GetStartedScreen>
                               .textTheme
                               .headlineMedium
                               ?.copyWith(
-                                fontSize: 34,
+                                fontSize: isSmallScreen ? 28 : 34,
                                 color: const Color(0xFF1B5E5A),
                                 height: 1.2,
                                 fontWeight: FontWeight.bold,
@@ -142,7 +145,7 @@ class _GetStartedScreenState extends State<GetStartedScreen>
                                   .textTheme
                                   .headlineMedium
                                   ?.copyWith(
-                                    fontSize: 34,
+                                    fontSize: isSmallScreen ? 28 : 34,
                                     color: const Color(0xFF1B7A75),
                                     height: 1.2,
                                     fontWeight: FontWeight.w900,
@@ -153,12 +156,12 @@ class _GetStartedScreenState extends State<GetStartedScreen>
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: isSmallScreen ? 12 : 16),
                       Text(
                         "PetMatch connects people and pets through smart, caring technology—helping adopters discover the perfect furry friend while giving every animal the chance to find a loving home.",
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontSize: 14,
+                              fontSize: isSmallScreen ? 13 : 14,
                               color: const Color(0xFF666666),
                               height: 1.6,
                             ),
@@ -172,7 +175,7 @@ class _GetStartedScreenState extends State<GetStartedScreen>
                   ),
                 ),
 
-                const SizedBox(height: 30),
+                SizedBox(height: isSmallScreen ? 20 : 30),
 
                 CustomButton(
                   label: 'Create Account',
@@ -180,10 +183,10 @@ class _GetStartedScreenState extends State<GetStartedScreen>
                     context.push('/register');
                   },
                   icon: Icons.pets,
-                  verticalPadding: 14,
+                  verticalPadding: isSmallScreen ? 12 : 14,
                 ),
 
-                const SizedBox(height: 16),
+                SizedBox(height: isSmallScreen ? 12 : 16),
 
                 // Sign In link
                 GestureDetector(
@@ -193,8 +196,9 @@ class _GetStartedScreenState extends State<GetStartedScreen>
                   child: Text.rich(
                     TextSpan(
                       text: "I already have an account, ",
-                      style: const TextStyle(
-                          color: Color(0xFF666666), fontSize: 14),
+                      style: TextStyle(
+                          color: const Color(0xFF666666),
+                          fontSize: isSmallScreen ? 13 : 14),
                       children: [
                         TextSpan(
                           text: "Sign in",
@@ -214,7 +218,7 @@ class _GetStartedScreenState extends State<GetStartedScreen>
                   "assets/get_started_screen/dog.png",
                   fit: BoxFit.contain,
                   alignment: Alignment.bottomCenter,
-                  height: 350,
+                  height: isSmallScreen ? 210 : 350,
                 ),
               ],
             ),

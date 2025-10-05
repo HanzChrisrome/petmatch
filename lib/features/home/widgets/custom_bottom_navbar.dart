@@ -37,7 +37,7 @@ class CustomBottomNav extends StatelessWidget {
               _buildNavItem(context, Icons.calendar_today_outlined, 3,
                   '/home/notifications'),
               _buildNavItem(
-                  context, Icons.person_outline, 4, '/home/settings-screen'),
+                  context, Icons.person_outline, 4, '/home/profile-screen'),
             ],
           ),
         ),

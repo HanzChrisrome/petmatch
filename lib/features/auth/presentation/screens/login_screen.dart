@@ -60,6 +60,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final authStateNotifier = ref.read(authProvider.notifier);
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
 
     final lockoutTime = authState.lockoutTime;
     final remainingSeconds = _calculateRemainingSeconds(lockoutTime);
@@ -90,21 +92,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: Column(
                     children: [
                       AnimatedCrossFade(
-                        firstChild: const Padding(
-                          padding: EdgeInsets.only(top: 50),
+                        firstChild: Padding(
+                          padding:
+                              EdgeInsets.only(top: isSmallScreen ? 30 : 50),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Image(
-                                image: AssetImage('assets/petmatch_logo.png'),
-                                height: 84,
+                                image: const AssetImage(
+                                    'assets/petmatch_logo.png'),
+                                height: isSmallScreen ? 64 : 84,
                                 fit: BoxFit.contain,
                               ),
-                              SizedBox(height: 20),
+                              SizedBox(height: isSmallScreen ? 12 : 20),
                               Text(
                                 'Your journey starts here\nTake the first step',
                                 style: TextStyle(
-                                  fontSize: 24,
+                                  fontSize: isSmallScreen ? 20 : 24,
                                   height: 1.1,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -121,13 +125,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         sizeCurve: Curves.easeInOut,
                       ),
 
-                      const SizedBox(height: 70),
+                      SizedBox(height: isSmallScreen ? 40 : 70),
                       Center(
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 420),
                           child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 24.0),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: isSmallScreen ? 20.0 : 24.0),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -182,11 +186,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                             .colorScheme
                                             .onSurface,
                                         fontWeight: FontWeight.w600,
+                                        fontSize: isSmallScreen ? 13 : 14,
                                       ),
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 20),
+                                SizedBox(height: isSmallScreen ? 16 : 20),
                                 CustomButton(
                                   label: authState.isLoggingIn
                                       ? 'Signing in...'
@@ -207,9 +212,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                               );
                                             },
                                   horizontalPadding: 0,
-                                  verticalPadding: 12,
+                                  verticalPadding: isSmallScreen ? 10 : 12,
                                 ),
-                                const SizedBox(height: 20),
+                                SizedBox(height: isSmallScreen ? 16 : 20),
                               ],
                             ),
                           ),
