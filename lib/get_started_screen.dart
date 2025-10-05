@@ -1,0 +1,226 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:petmatch/widgets/custom_button.dart';
+
+class GetStartedScreen extends StatefulWidget {
+  const GetStartedScreen({super.key});
+
+  @override
+  State<GetStartedScreen> createState() => _GetStartedScreenState();
+}
+
+class _GetStartedScreenState extends State<GetStartedScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _floatA;
+  late final Animation<double> _floatB;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 6),
+    )..repeat(reverse: true);
+
+    _floatA = Tween<double>(begin: 0, end: 18).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
+    );
+
+    _floatB = Tween<double>(begin: 0, end: -16).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      body: Stack(
+        children: [
+          AnimatedBuilder(
+            animation: _ctrl,
+            builder: (context, child) {
+              return Positioned(
+                bottom: 250 + _floatB.value,
+                right: -20 + (_floatA.value / 4),
+                child: Transform.rotate(
+                  angle: 6 + (_floatA.value * 0.004),
+                  child: child,
+                ),
+              );
+            },
+            child: Image.asset(
+              'assets/get_started_screen/paws.png',
+              width: 80,
+              height: 80,
+            ),
+          ),
+
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 210,
+            child: IgnorePointer(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Theme.of(context).colorScheme.primary,
+                      const Color(0x001B7A75),
+                    ],
+                    stops: const [0.0, 0.9],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          AnimatedBuilder(
+            animation: _ctrl,
+            builder: (context, child) {
+              return Positioned(
+                bottom: 120 + _floatB.value,
+                left: -35 + (_floatB.value / 6),
+                child: Transform.rotate(
+                  angle: -6 + (_floatB.value * 0.003),
+                  child: child,
+                ),
+              );
+            },
+            child: Image.asset(
+              'assets/get_started_screen/paws.png',
+              width: 100,
+              height: 100,
+            ),
+          ),
+
+          // Main content with dog (on top)
+          Positioned.fill(
+            child: Column(
+              children: [
+                const SizedBox(height: 80),
+
+                Image.asset(
+                  "assets/petmatch_logo.png",
+                  height: 140,
+                ),
+
+                const SizedBox(height: 24),
+
+                // Tagline
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Column(
+                    children: [
+                      RichText(
+                        textAlign: TextAlign.center,
+                        text: TextSpan(
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
+                              ?.copyWith(
+                                fontSize: 34,
+                                color: const Color(0xFF1B5E5A),
+                                height: 1.2,
+                                fontWeight: FontWeight.bold,
+                              ),
+                          children: [
+                            const TextSpan(text: "Where "),
+                            TextSpan(
+                              text: "companions",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineMedium
+                                  ?.copyWith(
+                                    fontSize: 34,
+                                    color: const Color(0xFF1B7A75),
+                                    height: 1.2,
+                                    fontWeight: FontWeight.w900,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                            ),
+                            const TextSpan(text: "\nfind each other."),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        "PetMatch connects people and pets through smart, caring technology—helping adopters discover the perfect furry friend while giving every animal the chance to find a loving home.",
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontSize: 14,
+                              color: const Color(0xFF666666),
+                              height: 1.6,
+                            ),
+                        // style: TextStyle(
+                        //   fontSize: 14,
+                        //   color: Color(0xFF666666),
+                        //   height: 1.6,
+                        // ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                CustomButton(
+                  label: 'Create Account',
+                  onPressed: () {
+                    context.push('/register');
+                  },
+                  icon: Icons.pets,
+                  verticalPadding: 14,
+                ),
+
+                const SizedBox(height: 16),
+
+                // Sign In link
+                GestureDetector(
+                  onTap: () {
+                    context.push('/login');
+                  },
+                  child: Text.rich(
+                    TextSpan(
+                      text: "I already have an account, ",
+                      style: const TextStyle(
+                          color: Color(0xFF666666), fontSize: 14),
+                      children: [
+                        TextSpan(
+                          text: "Sign in",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const Spacer(),
+
+                Image.asset(
+                  "assets/get_started_screen/dog.png",
+                  fit: BoxFit.contain,
+                  alignment: Alignment.bottomCenter,
+                  height: 350,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
