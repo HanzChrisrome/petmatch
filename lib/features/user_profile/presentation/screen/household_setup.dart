@@ -1,5 +1,12 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:petmatch/core/utils/responsive_helper.dart';
+import 'package:petmatch/features/user_profile/provider/user_profile_provider.dart';
+import 'package:petmatch/widgets/back_button.dart';
 import 'package:petmatch/widgets/custom_button.dart';
 import 'package:petmatch/widgets/style/themed_textfield.dart';
 
@@ -18,12 +25,17 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
   // Selected values
   bool? _hasOtherPets;
   bool? _hasChildren;
-  bool? _hasAllergies;
   bool? _comfortableWithShyPet;
+  bool? _financiallyReady;
+  bool? _hadPetsBefore;
 
   @override
   void dispose() {
     _existingPetsController.dispose();
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: SystemUiOverlay.values,
+    );
     super.dispose();
   }
 
@@ -33,189 +45,381 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
     final isSmallScreen = screenHeight < 700;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFF0F9FF),
-              Color(0xFFFFFBF0),
-              Colors.white,
-            ],
-            stops: [0.0, 0.5, 1.0],
-          ),
-        ),
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            horizontal: isSmallScreen ? 20 : 24,
-            vertical: isSmallScreen ? 16 : 20,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Text(
-                "About your household 🏡",
-                style: TextStyle(
-                  fontSize: isSmallScreen ? 26 : 30,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0284C7),
+      body: Stack(
+        children: [
+          // Scrollable Content
+          SingleChildScrollView(
+            padding: EdgeInsets.only(
+              left: isSmallScreen ? 20 : 24,
+              right: isSmallScreen ? 20 : 24,
+              top: isSmallScreen
+                  ? 60
+                  : 70, // Extra padding for back button + safe area
+              bottom: isSmallScreen ? 16 : 20,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                BackButtonCircle(
+                  iconSize: getResponsiveValue(
+                    context,
+                    verySmall: 14,
+                    small: 16,
+                    medium: 18,
+                    large: 20,
+                  ),
+                  onTap: () => Navigator.of(context).pop(),
                 ),
-              ),
-              SizedBox(height: isSmallScreen ? 6 : 8),
-              Text(
-                "These details help us ensure a safe and happy match",
-                style: TextStyle(
-                  fontSize: isSmallScreen ? 15 : 16,
-                  color: Colors.grey[600],
-                  height: 1.4,
+                SizedBox(height: isSmallScreen ? 10 : 20),
+                Text(
+                  '[ STEP 1 OF 8 ]',
+                  style: TextStyle(
+                    fontSize: getResponsiveValue(
+                      context,
+                      verySmall: 10,
+                      small: 12,
+                      medium: 14,
+                      large: 16,
+                    ),
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 20),
+                Text(
+                  'Tell us about your household.',
+                  style: GoogleFonts.newsreader(
+                    fontSize: getResponsiveValue(
+                      context,
+                      verySmall: 40,
+                      small: 44,
+                      medium: 48,
+                      large: 50,
+                    ),
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.9,
+                    height: 0.9,
+                  ),
+                  textAlign: TextAlign.left,
+                ),
 
-              SizedBox(height: isSmallScreen ? 32 : 40),
+                const SizedBox(height: 20),
 
-              // Other Pets
-              _buildSectionLabel(
-                  "Do you have other pets?", "🐾", isSmallScreen),
-              const SizedBox(height: 16),
-              _buildYesNoToggle(
-                _hasOtherPets,
-                (value) {
-                  setState(() {
-                    _hasOtherPets = value;
-                    if (value == false) {
-                      _existingPetsController.clear();
-                    }
-                  });
-                },
-                isSmallScreen,
-              ),
-
-              // Conditional pet type input
-              if (_hasOtherPets == true) ...[
-                const SizedBox(height: 16),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
+                // Other Pets
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFFDDD6FE), // light purple
+                        Color(0xFFC084FC), // medium purple
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    border: Border.all(
+                      color: Color(0xFFA855F7), // purple border
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  padding: EdgeInsets.all(isSmallScreen ? 14 : 18),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        "Tell us about them! 🐕🐈",
-                        style: TextStyle(
-                          fontSize: isSmallScreen ? 14 : 15,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[700],
+                      _buildSectionLabel(
+                          "Do you have other pets?", "🐾", isSmallScreen),
+                      const SizedBox(height: 16),
+                      _buildYesNoToggle(
+                        _hasOtherPets,
+                        (value) {
+                          setState(() {
+                            _hasOtherPets = value;
+                            if (value == false) {
+                              _existingPetsController.clear();
+                            }
+                          });
+                        },
+                        isSmallScreen,
+                        yesGradient: const LinearGradient(
+                          colors: [Color(0xFFA855F7), Color(0xFF9333EA)],
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      ThemedTextField(
-                        controller: _existingPetsController,
-                        label: 'e.g., 1 dog, 2 cats',
-                        prefixIcon: Icons.pets,
+                        yesBorderColor: const Color(0xFF9333EA),
+                        yesColor: const Color(0xFFA855F7),
                       ),
                     ],
                   ),
                 ),
-              ],
 
-              SizedBox(height: isSmallScreen ? 32 : 40),
+                if (_hasOtherPets == true) ...[
+                  const SizedBox(height: 10),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    padding: EdgeInsets.all(isSmallScreen ? 14 : 18),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFAF5FF),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFE9D5FF),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Tell us about them!",
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 14 : 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        ThemedTextField(
+                          controller: _existingPetsController,
+                          label: 'e.g., 1 dog, 2 cats',
+                          prefixIcon: Icons.pets,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
 
-              // Children
-              _buildSectionLabel("Do you have children?", "👶", isSmallScreen),
-              const SizedBox(height: 16),
-              _buildYesNoToggle(
-                _hasChildren,
-                (value) {
-                  setState(() {
-                    _hasChildren = value;
-                  });
-                },
-                isSmallScreen,
-              ),
+                const SizedBox(height: 10),
 
-              SizedBox(height: isSmallScreen ? 32 : 40),
-
-              // Allergies
-              _buildSectionLabel(
-                  "Any household allergies?", "🤧", isSmallScreen),
-              const SizedBox(height: 16),
-              _buildYesNoToggle(
-                _hasAllergies,
-                (value) {
-                  setState(() {
-                    _hasAllergies = value;
-                  });
-                },
-                isSmallScreen,
-              ),
-
-              SizedBox(height: isSmallScreen ? 32 : 40),
-
-              // Shy Pet Comfort
-              _buildSectionLabel(
-                  "Comfortable with a shy pet?", "🥺", isSmallScreen),
-              const SizedBox(height: 12),
-              Text(
-                "Some pets need extra patience and gentle care",
-                style: TextStyle(
-                  fontSize: isSmallScreen ? 13 : 14,
-                  color: Colors.grey[500],
-                  fontStyle: FontStyle.italic,
+                // Children
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFFBAE6FD), // light blue
+                        Color(0xFF7DD3FC), // medium blue
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    border: Border.all(
+                      color: Color(0xFF0EA5E9), // blue border
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  padding: EdgeInsets.all(isSmallScreen ? 14 : 18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionLabel(
+                          "Do you have children?", "👶", isSmallScreen),
+                      const SizedBox(height: 16),
+                      _buildYesNoToggle(
+                        _hasChildren,
+                        (value) {
+                          setState(() {
+                            _hasChildren = value;
+                          });
+                        },
+                        isSmallScreen,
+                        yesGradient: const LinearGradient(
+                          colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
+                        ),
+                        yesBorderColor: const Color(0xFF0284C7),
+                        yesColor: const Color(0xFF0EA5E9),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              _buildYesNoToggle(
-                _comfortableWithShyPet,
-                (value) {
-                  setState(() {
-                    _comfortableWithShyPet = value;
-                  });
-                },
-                isSmallScreen,
-              ),
 
-              SizedBox(height: isSmallScreen ? 40 : 50),
+                const SizedBox(height: 10),
 
-              // Continue Button
-              CustomButton(
-                label: 'All Done!',
-                onPressed: () {
-                  _submitHousehold();
-                },
-                horizontalPadding: 0,
-                verticalPadding: isSmallScreen ? 12 : 14,
-                icon: Icons.check_circle,
-              ),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFFBBF7D0), // light green
+                        Color(0xFF4ADE80), // medium green
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    border: Border.all(
+                      color: const Color(0xFF22C55E), // green border
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  padding: EdgeInsets.all(isSmallScreen ? 14 : 18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionLabel(
+                          "Comfortable with a shy pet?", "🥺", isSmallScreen),
+                      Text(
+                        "Some pets need extra patience and gentle care",
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 13 : 14,
+                          color: Colors.grey[700],
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildYesNoToggle(
+                        _comfortableWithShyPet,
+                        (value) {
+                          setState(() {
+                            _comfortableWithShyPet = value;
+                          });
+                        },
+                        isSmallScreen,
+                        yesGradient: const LinearGradient(
+                          colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
+                        ),
+                        yesBorderColor: const Color(0xFF16A34A),
+                        yesColor: const Color(0xFF22C55E),
+                      ),
+                    ],
+                  ),
+                ),
 
-              const SizedBox(height: 20),
-            ],
-          ),
-        ),
-      ),
-    );
+                const SizedBox(height: 10),
+
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color.fromARGB(255, 247, 187, 234), // light green
+                        Color.fromARGB(255, 223, 96, 184), // medium green
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    border: Border.all(
+                      color: const Color.fromARGB(
+                          255, 197, 34, 189), // green border
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  padding: EdgeInsets.all(isSmallScreen ? 14 : 18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionLabel(
+                          "Are you financially ready?", "🥺", isSmallScreen),
+                      Text(
+                        "For food, vet visits, and unexpected expenses",
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 13 : 14,
+                          color: Colors.grey[700],
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildYesNoToggle(
+                        _financiallyReady,
+                        (value) {
+                          setState(() {
+                            _financiallyReady = value;
+                          });
+                        },
+                        isSmallScreen,
+                        yesGradient: const LinearGradient(
+                          colors: [
+                            Color.fromARGB(255, 197, 34, 189),
+                            Color.fromARGB(255, 163, 22, 151)
+                          ],
+                        ),
+                        yesBorderColor: const Color.fromARGB(255, 163, 22, 139),
+                        yesColor: const Color.fromARGB(255, 192, 34, 197),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color.fromARGB(255, 247, 226, 187), // light green
+                        Color.fromARGB(255, 223, 143, 96), // medium green
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    border: Border.all(
+                      color: const Color.fromARGB(
+                          255, 197, 140, 34), // green border
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  padding: EdgeInsets.all(isSmallScreen ? 14 : 18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionLabel(
+                          "Have you had pets before?", "🥺", isSmallScreen),
+                      Text(
+                        "First time owners are welcome too!",
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 13 : 14,
+                          color: Colors.grey[700],
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildYesNoToggle(
+                        _hadPetsBefore,
+                        (value) {
+                          setState(() {
+                            _hadPetsBefore = value;
+                          });
+                        },
+                        isSmallScreen,
+                        yesGradient: const LinearGradient(
+                          colors: [
+                            Color.fromARGB(255, 197, 140, 34),
+                            Color.fromARGB(255, 163, 107, 22)
+                          ],
+                        ),
+                        yesBorderColor: const Color.fromARGB(255, 163, 102, 22),
+                        yesColor: const Color.fromARGB(255, 197, 159, 34),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Continue Button
+                CustomButton(
+                  label: 'Continue',
+                  onPressed: () {
+                    _submitHousehold();
+                  },
+                  gradient: LinearGradient(
+                    colors: const [Color(0xFF0EA5E9), Color(0xFF0284C7)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  horizontalPadding: 0,
+                )
+              ], // End Column children
+            ), // End Column
+          ), // End SingleC
+        ], // End Stack children
+      ), // End Stack (body)
+    ); // End Scaffold
   }
 
   Widget _buildSectionLabel(String text, String emoji, bool isSmall) {
     return Row(
       children: [
-        Text(
-          emoji,
-          style: TextStyle(fontSize: isSmall ? 20 : 24),
-        ),
-        const SizedBox(width: 8),
         Flexible(
           child: Text(
             text,
-            style: TextStyle(
+            style: GoogleFonts.inter(
               fontSize: isSmall ? 16 : 18,
               fontWeight: FontWeight.w700,
               color: Colors.black87,
@@ -229,8 +433,11 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
   Widget _buildYesNoToggle(
     bool? currentValue,
     Function(bool) onChanged,
-    bool isSmall,
-  ) {
+    bool isSmall, {
+    LinearGradient? yesGradient,
+    Color? yesBorderColor,
+    Color? yesColor,
+  }) {
     return Row(
       children: [
         Expanded(
@@ -240,6 +447,9 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
             currentValue == true,
             () => onChanged(true),
             isSmall,
+            customGradient: yesGradient,
+            customBorderColor: yesBorderColor,
+            customColor: yesColor,
           ),
         ),
         const SizedBox(width: 12),
@@ -261,25 +471,32 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
     bool value,
     bool isSelected,
     VoidCallback onTap,
-    bool isSmall,
-  ) {
+    bool isSmall, {
+    LinearGradient? customGradient,
+    Color? customBorderColor,
+    Color? customColor,
+  }) {
+    // Default colors
+    final gradient = customGradient ??
+        const LinearGradient(
+          colors: [
+            Color(0xFF0EA5E9),
+            Color(0xFF0284C7),
+          ],
+        );
+    final borderColor = customBorderColor ?? const Color(0xFF0284C7);
+    final mainColor = customColor ?? const Color(0xFF0EA5E9);
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
         padding: EdgeInsets.symmetric(
-          vertical: isSmall ? 18 : 22,
+          vertical: isSmall ? 5 : 10,
         ),
         decoration: BoxDecoration(
-          gradient: isSelected && value
-              ? const LinearGradient(
-                  colors: [
-                    Color(0xFF0EA5E9),
-                    Color(0xFF0284C7),
-                  ],
-                )
-              : null,
+          gradient: isSelected && value ? gradient : null,
           color: isSelected && !value
               ? Colors.grey[300]
               : isSelected
@@ -288,14 +505,14 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
-                ? (value ? const Color(0xFF0284C7) : Colors.grey[400]!)
-                : const Color(0xFFBAE6FD),
+                ? (value ? borderColor : Colors.grey[400]!)
+                : mainColor.withOpacity(0.3),
             width: isSelected ? 2.5 : 1.5,
           ),
           boxShadow: isSelected && value
               ? [
                   BoxShadow(
-                    color: const Color(0xFF0284C7).withOpacity(0.3),
+                    color: borderColor.withOpacity(0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
@@ -320,7 +537,7 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
                   ? Colors.white
                   : isSelected
                       ? Colors.grey[700]
-                      : const Color(0xFF0284C7),
+                      : mainColor,
             ),
           ),
         ),
@@ -329,22 +546,36 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
   }
 
   void _submitHousehold() {
-    // Collect all data
-    final householdData = {
-      'hasOtherPets': _hasOtherPets,
-      'existingPets':
-          _hasOtherPets == true ? _existingPetsController.text : null,
-      'hasChildren': _hasChildren,
-      'hasAllergies': _hasAllergies,
-      'comfortableWithShyPet': _comfortableWithShyPet,
-    };
+    // Validate that all required fields are filled
+    if (_hasOtherPets == null ||
+        _hasChildren == null ||
+        _comfortableWithShyPet == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please answer all questions before continuing'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
 
-    // TODO: Save to database or provider
-    print('Household Data: $householdData');
+    // Save to provider
+    final notifier = ref.read(userProfileProvider.notifier);
 
-    // Navigate to next screen or show success
+    // Save household data
+    notifier.setHasOtherPets(
+      _hasOtherPets!,
+      _hasOtherPets == true ? _existingPetsController.text : null,
+    );
+    notifier.setHasChildren(_hasChildren!);
+    notifier.setComfortableWithShyPet(_comfortableWithShyPet!);
+
+    // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Setup complete! 🎉')),
+      const SnackBar(
+        content: Text('Household setup complete! 🎉'),
+        backgroundColor: Color(0xFF22C55E),
+      ),
     );
   }
 }

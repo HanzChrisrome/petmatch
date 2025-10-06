@@ -6,12 +6,19 @@ import 'package:petmatch/features/pet_profile/screens/pet_behavior_information.d
 import 'package:petmatch/features/pet_profile/screens/pet_health_information.dart';
 import 'package:petmatch/features/pet_profile/screens/pet_information.dart';
 import 'package:petmatch/features/pet_profile/screens/pet_temperament_information.dart';
+import 'package:petmatch/features/user_profile/presentation/screen/activity_level_setup.dart';
+import 'package:petmatch/features/user_profile/presentation/screen/affection_level_setup.dart';
+import 'package:petmatch/features/user_profile/presentation/screen/grooming_level_setup.dart';
+import 'package:petmatch/features/user_profile/presentation/screen/has_children.dart';
+import 'package:petmatch/features/user_profile/presentation/screen/patience_level_setup.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/household_setup.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/lifestyle_setup.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/personality_setup.dart';
+import 'package:petmatch/features/user_profile/presentation/screen/pet_preference.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/pet_preferences_setup.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/profile_setup.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/responsibility_setup.dart';
+import 'package:petmatch/features/user_profile/presentation/screen/size_preference.dart';
 
 final homeRoutes = [
   GoRoute(
@@ -87,6 +94,41 @@ final homeRoutes = [
         path: '/pet-behavior-information',
         name: 'pet-behavior-information',
         builder: (context, state) => const PetBehaviorInformationScreen(),
+      ),
+      GoRoute(
+        path: '/activity-level-setup',
+        name: 'activity-level-setup',
+        builder: (context, state) => const ActivityLevelSetupScreen(),
+      ),
+      GoRoute(
+        path: '/patience-level-setup',
+        name: 'patience-level-setup',
+        builder: (context, state) => const PatienceLevelSetupScreen(),
+      ),
+      GoRoute(
+        path: '/affection-level-setup',
+        name: 'affection-level-setup',
+        builder: (context, state) => const AffectionLevelSetupScreen(),
+      ),
+      GoRoute(
+        path: '/grooming-level-setup',
+        name: 'grooming-level-setup',
+        builder: (context, state) => const GroomingLevelSetupScreen(),
+      ),
+      GoRoute(
+        path: '/pet-preference-setup',
+        name: 'pet-preference-setup',
+        builder: (context, state) => const PetPreferenceScreen(),
+      ),
+      GoRoute(
+        path: '/size-preference-setup',
+        name: 'size-preference-setup',
+        builder: (context, state) => const SizePreferenceScreen(),
+      ),
+      GoRoute(
+        path: '/user-has-children-setup',
+        name: 'user-has-children-setup',
+        builder: (context, state) => const HasChildrenScreen(),
       ),
     ],
   ),

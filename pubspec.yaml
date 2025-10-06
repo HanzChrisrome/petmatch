@@ -52,5 +52,14 @@ flutter:
     - assets/get_started_screen/dog.png
     - assets/get_started_screen/paws.png
 
+    # Activity Faces
+    - assets/activity_faces/
+    - assets/activities_faces/
+    - assets/patience_faces/
+    - assets/affection_faces/
+    - assets/grooming_faces/
+    - assets/pet_preference/
+    - assets/size_preference/
+
     # Lottie Files
     - assets/lottie/Rotation Cats.json

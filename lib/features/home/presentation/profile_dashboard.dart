@@ -115,6 +115,62 @@ class _ProfileDashboardState extends ConsumerState<ProfileDashboard> {
             // Menu Items
             _buildMenuItem(
               icon: Icons.favorite_border,
+              title: 'Activity Level',
+              onTap: () {
+                context.push('/home/activity-level-setup');
+              },
+            ),
+
+            _buildMenuItem(
+              icon: Icons.favorite_border,
+              title: 'Patience Level',
+              onTap: () {
+                context.push('/home/patience-level-setup');
+              },
+            ),
+
+            _buildMenuItem(
+              icon: Icons.favorite_border,
+              title: 'Affection',
+              onTap: () {
+                context.push('/home/affection-level-setup');
+              },
+            ),
+
+            _buildMenuItem(
+              icon: Icons.favorite_border,
+              title: 'Grooming',
+              onTap: () {
+                context.push('/home/grooming-level-setup');
+              },
+            ),
+
+            _buildMenuItem(
+              icon: Icons.favorite_border,
+              title: 'Pet Preference',
+              onTap: () {
+                context.push('/home/pet-preference-setup');
+              },
+            ),
+
+            _buildMenuItem(
+              icon: Icons.favorite_border,
+              title: 'Size Preference',
+              onTap: () {
+                context.push('/home/size-preference-setup');
+              },
+            ),
+
+            _buildMenuItem(
+              icon: Icons.favorite_border,
+              title: 'Has Children',
+              onTap: () {
+                context.push('/home/user-has-children-setup');
+              },
+            ),
+
+            _buildMenuItem(
+              icon: Icons.favorite_border,
               title: 'Lifestyle',
               onTap: () {
                 context.push('/home/lifestyle-setup');
