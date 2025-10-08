@@ -9,15 +9,10 @@ import 'package:petmatch/features/pet_profile/screens/pet_temperament_informatio
 import 'package:petmatch/features/user_profile/presentation/screen/activity_level_setup.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/affection_level_setup.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/grooming_level_setup.dart';
-import 'package:petmatch/features/user_profile/presentation/screen/has_children.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/patience_level_setup.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/household_setup.dart';
-import 'package:petmatch/features/user_profile/presentation/screen/lifestyle_setup.dart';
-import 'package:petmatch/features/user_profile/presentation/screen/personality_setup.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/pet_preference.dart';
-import 'package:petmatch/features/user_profile/presentation/screen/pet_preferences_setup.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/profile_setup.dart';
-import 'package:petmatch/features/user_profile/presentation/screen/responsibility_setup.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/size_preference.dart';
 
 final homeRoutes = [
@@ -44,32 +39,10 @@ final homeRoutes = [
         builder: (context, state) => const ProfileSetupScreen(),
       ),
       GoRoute(
-        path: '/lifestyle-setup',
-        name: 'lifestyle-setup',
-        builder: (context, state) => const LifestyleSetupScreen(),
-      ),
-      GoRoute(
-        path: '/pet-preferences-setup',
-        name: 'pet-preferences-setup',
-        builder: (context, state) => const PetPreferencesSetupScreen(),
-      ),
-      GoRoute(
-        path: '/personality-setup',
-        name: 'personality-setup',
-        builder: (context, state) => const PersonalitySetupScreen(),
-      ),
-      GoRoute(
         path: '/household-setup',
         name: 'household-setup',
         builder: (context, state) => const HouseholdSetupScreen(),
       ),
-      GoRoute(
-        path: '/responsibility-setup',
-        name: 'responsibility-setup',
-        builder: (context, state) => const ResponsibilitySetupScreen(),
-      ),
-
-      //PET PROFILE
       GoRoute(
         path: '/pet-information',
         name: 'pet-information',
@@ -124,11 +97,6 @@ final homeRoutes = [
         path: '/size-preference-setup',
         name: 'size-preference-setup',
         builder: (context, state) => const SizePreferenceScreen(),
-      ),
-      GoRoute(
-        path: '/user-has-children-setup',
-        name: 'user-has-children-setup',
-        builder: (context, state) => const HasChildrenScreen(),
       ),
     ],
   ),

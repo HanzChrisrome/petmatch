@@ -31,10 +31,13 @@ class AuthNotifier extends Notifier<UserAuthState> {
       user_id,
       full_name,
       user_email,
-      user_role
+      user_role,
+      onboarding_complete
     ''').eq('user_id', userId).single();
 
       final profile = AppUser.fromJson(userRecord);
+      final onboardingComplete =
+          userRecord['onboarding_complete'] as bool? ?? false;
 
       state = state.copyWith(
         userProfile: profile,
@@ -42,6 +45,7 @@ class AuthNotifier extends Notifier<UserAuthState> {
         userName: profile.fullName,
         userEmail: profile.email,
         isAuthenticated: true,
+        onboardingComplete: onboardingComplete,
       );
     } catch (e) {
       NotifierHelper.logError(e);
@@ -73,7 +77,29 @@ class AuthNotifier extends Notifier<UserAuthState> {
       );
 
       if (response.user != null) {
-        // NotifierHelper.showLoadingToast(context, 'Fetching your data');
+        final user = response.user!;
+
+        // Check if email is verified
+        if (user.emailConfirmedAt == null) {
+          // Email not verified - redirect to verification screen
+          await supabase.auth.signOut();
+
+          NotifierHelper.showErrorToast(
+            context,
+            'Please verify your email before logging in.',
+          );
+
+          state = state.copyWith(
+            userEmail: email,
+            userPassword: password,
+            isLoggingIn: false,
+          );
+
+          context.go('/verify-email?email=$email&password=$password');
+          return;
+        }
+
+        // Email is verified - proceed with login
         await initializeAuth();
 
         NotifierHelper.closeToast(context);
@@ -83,12 +109,12 @@ class AuthNotifier extends Notifier<UserAuthState> {
           lockoutTime: null,
         );
 
-        // if (state.isRegistering || !state.isSetupComplete) {
-        //   context.go('/setup');
-        // } else {
-        //   context.go('/home');
-        // }
-        context.go('/home');
+        // Check if user needs to complete onboarding
+        if (!state.onboardingComplete) {
+          context.go('/onboarding');
+        } else {
+          context.go('/home');
+        }
       }
     } catch (e) {
       NotifierHelper.logError(e);
@@ -191,6 +217,23 @@ class AuthNotifier extends Notifier<UserAuthState> {
             'created_at': DateTime.now().toIso8601String(),
           },
         );
+
+        // Store credentials for verification screen
+        state = state.copyWith(
+          userEmail: email,
+          userPassword: password,
+          isRegistering: true,
+        );
+
+        NotifierHelper.closeToast(context);
+        NotifierHelper.showSuccessToast(
+          context,
+          'Registration successful! Please verify your email.',
+        );
+
+        // Navigate to verify email screen
+        context.go('/verify-email?email=$email&password=$password');
+        return;
       }
 
       state = state.copyWith(userEmail: email, userPassword: password);
@@ -332,6 +375,42 @@ class AuthNotifier extends Notifier<UserAuthState> {
       'updated_at': DateTime.now().toIso8601String(),
     }, onConflict: 'user_id');
   }
+
+  /// Mark onboarding as complete in database and state
+  Future<void> completeOnboarding(BuildContext context) async {
+    final userId = state.userId;
+    if (userId == null) {
+      NotifierHelper.showErrorToast(context, 'User not authenticated');
+      return;
+    }
+
+    try {
+      NotifierHelper.showLoadingToast(context, 'Completing setup...');
+
+      // Update database
+      await supabase.from('users').update({
+        'onboarding_complete': true,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('user_id', userId);
+
+      // Update state
+      state = state.copyWith(onboardingComplete: true);
+
+      NotifierHelper.closeToast(context);
+      NotifierHelper.showSuccessToast(context, 'Profile setup complete! 🎉');
+
+      // Navigate to home
+      context.go('/home');
+    } catch (e) {
+      NotifierHelper.closeToast(context);
+      NotifierHelper.showErrorToast(
+          context, 'Failed to complete setup: ${e.toString()}');
+      NotifierHelper.logError(e);
+    }
+  }
+
+  /// Check if user has completed onboarding
+  bool get hasCompletedOnboarding => state.onboardingComplete;
 }
 
 final authProvider =

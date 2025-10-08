@@ -1,11 +1,10 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:petmatch/core/utils/responsive_helper.dart';
+import 'package:petmatch/core/constants/asset_paths.dart';
 import 'package:petmatch/features/user_profile/provider/user_profile_provider.dart';
 import 'package:petmatch/widgets/back_button.dart';
 
@@ -17,10 +16,8 @@ class SizePreferenceScreen extends ConsumerStatefulWidget {
       _SizePreferenceScreenState();
 }
 
-class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen>
-    with SingleTickerProviderStateMixin {
-  double _selectedSizeValue = 2.0; // 1=Small, 2=Medium, 3=Large
-  late AnimationController _pulseController;
+class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
+  double _selectedSizeValue = 2.0;
 
   // Cat size options
   final List<Map<String, dynamic>> _catSizeOptions = [
@@ -28,7 +25,7 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen>
       'value': 1,
       'label': 'Small Cat',
       'emoji': '🐱',
-      'image': 'assets/size_preference/small_cat.png',
+      'image': UserProfileAssets.sizeSmallCat,
       'color': const Color.fromARGB(255, 255, 145, 222),
       'description':
           'Small cats (5-10 lbs). Perfect for apartments and cozy spaces.'
@@ -37,7 +34,7 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen>
       'value': 2,
       'label': 'Medium Cat',
       'emoji': '😺',
-      'image': 'assets/size_preference/medium_cat.png',
+      'image': UserProfileAssets.sizeMediumCat,
       'color': const Color.fromARGB(255, 166, 124, 253),
       'description':
           'Medium cats (10-15 lbs). The most common and versatile size.'
@@ -46,7 +43,7 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen>
       'value': 3,
       'label': 'Large Cat',
       'emoji': '🦁',
-      'image': 'assets/size_preference/large_cat.png',
+      'image': UserProfileAssets.sizeLargeCat,
       'color': const Color.fromARGB(255, 117, 154, 253),
       'description': 'Large cats (15+ lbs). Majestic and gentle giants.'
     },
@@ -58,7 +55,7 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen>
       'value': 1,
       'label': 'Small Dog',
       'emoji': '🐕',
-      'image': 'assets/size_preference/small_dog.png',
+      'image': UserProfileAssets.sizeSmallDog,
       'color': const Color.fromARGB(255, 255, 206, 43),
       'description':
           'Small dogs (under 20 lbs). Easy to carry and apartment-friendly.'
@@ -67,7 +64,7 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen>
       'value': 2,
       'label': 'Medium Dog',
       'emoji': '🐶',
-      'image': 'assets/size_preference/medium_dog.png',
+      'image': UserProfileAssets.sizeMediumDog,
       'color': const Color.fromARGB(255, 63, 211, 154),
       'description':
           'Medium dogs (20-50 lbs). Great balance of energy and manageability.'
@@ -76,7 +73,7 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen>
       'value': 3,
       'label': 'Large Dog',
       'emoji': '🐕‍🦺',
-      'image': 'assets/size_preference/large_dog.png',
+      'image': UserProfileAssets.sizeLargeDog,
       'color': const Color.fromARGB(255, 255, 127, 80),
       'description':
           'Large dogs (50+ lbs) like Golden Retriever or German Shepherd. Loyal companions with big hearts.'
@@ -89,7 +86,7 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen>
       'value': 1,
       'label': 'Small Pet',
       'emoji': '🐾',
-      'image': 'assets/size_preference/no_cat.png',
+      'image': UserProfileAssets.sizeNoCat,
       'color': const Color.fromARGB(255, 255, 182, 193),
       'description':
           'Small pets are easier to handle and perfect for smaller living spaces.'
@@ -98,7 +95,7 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen>
       'value': 2,
       'label': 'Medium Pet',
       'emoji': '🐾',
-      'image': 'assets/size_preference/no_dog.png',
+      'image': UserProfileAssets.sizeNoDog,
       'color': const Color.fromARGB(255, 176, 196, 222),
       'description':
           'Medium-sized pets offer a great balance between manageability and presence.'
@@ -107,7 +104,7 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen>
       'value': 3,
       'label': 'Large Pet',
       'emoji': '🐾',
-      'image': 'assets/size_preference/no_cat.png',
+      'image': UserProfileAssets.sizeNoCat,
       'color': const Color.fromARGB(255, 144, 238, 144),
       'description':
           'Large pets are wonderful companions with plenty of love to give.'
@@ -125,7 +122,6 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen>
       SystemUiMode.manual,
       overlays: SystemUiOverlay.values,
     );
-    _pulseController.dispose();
     super.dispose();
   }
 
@@ -217,21 +213,21 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen>
                 ),
                 child: Column(
                   children: [
-                    Text(
-                      '[ STEP 2 OF 8 ]',
-                      style: TextStyle(
-                        fontSize: getResponsiveValue(
-                          context,
-                          verySmall: 11,
-                          small: 12,
-                          medium: 13,
-                          large: 14,
-                        ),
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
+                    // Text(
+                    //   '[ STEP 2 OF 8 ]',
+                    //   style: TextStyle(
+                    //     fontSize: getResponsiveValue(
+                    //       context,
+                    //       verySmall: 11,
+                    //       small: 12,
+                    //       medium: 13,
+                    //       large: 14,
+                    //     ),
+                    //     color: Colors.grey[600],
+                    //     fontWeight: FontWeight.w500,
+                    //     letterSpacing: 1.2,
+                    //   ),
+                    // ),
                     SizedBox(
                       height: getResponsiveValue(
                         context,
@@ -547,18 +543,8 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen>
     final selectedSize = _currentSizeOption['label'] as String;
 
     // Save to provider
-    ref.read(userProfileProvider.notifier).setSizePreference(selectedSize);
-
-    // Show success message
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Size preference saved: $selectedSize'),
-        backgroundColor: _currentSizeOption['color'],
-        duration: const Duration(seconds: 2),
-      ),
-    );
-
-    // Navigate to next screen
-    // context.push('/next-screen');
+    ref
+        .read(userProfileProvider.notifier)
+        .setSizePreference(context, selectedSize);
   }
 }

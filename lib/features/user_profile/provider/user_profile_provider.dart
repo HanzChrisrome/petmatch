@@ -1,95 +1,94 @@
 // ignore_for_file: avoid_print
 
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:petmatch/features/auth/provider/auth_provider.dart';
+import 'package:petmatch/core/repository/user_profile_repository.dart';
 import 'package:petmatch/features/user_profile/provider/user_profile_state.dart';
 
 /// Notifier to manage user profile state
-class UserProfileNotifier extends StateNotifier<UserProfileState> {
-  UserProfileNotifier() : super(const UserProfileState());
+class UserProfileNotifier extends Notifier<UserProfileState> {
+  late final UserProfileRepository _repository;
 
-  void setPetPreference(String preference) {
-    state = state.copyWith(petPreference: preference);
-    _logState('Pet preference saved: $preference');
+  @override
+  UserProfileState build() {
+    _repository = ref.read(userProfileRepositoryProvider);
+    return const UserProfileState();
   }
 
-  void setActivityLevel(int level, String label) {
+  void setPetPreference(BuildContext context, String preference) {
+    state = state.copyWith(petPreference: preference);
+    _logState('Pet preference saved: $preference');
+    context.push('/onboarding/activity-level');
+  }
+
+  void setActivityLevel(BuildContext context, int level, String label) {
     state = state.copyWith(
       activityLevel: level,
       activityLabel: label,
     );
     _logState('Activity level saved: $level - $label');
+    context.push('/onboarding/patience-level');
   }
 
-  void setAffectionLevel(int level, String label) {
-    state = state.copyWith(
-      affectionLevel: level,
-      affectionLabel: label,
-    );
-    _logState('Affection level saved: $level - $label');
-  }
-
-  /// ✅ Save patience level
-  void setPatienceLevel(int level, String label) {
+  void setPatienceLevel(BuildContext context, int level, String label) {
     state = state.copyWith(
       patienceLevel: level,
       patienceLabel: label,
     );
     _logState('Patience level saved: $level - $label');
+    context.push('/onboarding/affection-level');
   }
 
-  /// Save living space preference
-  void setLivingSpace(String space) {
-    state = state.copyWith(livingSpace: space);
-    _logState('Living space saved: $space');
+  void setAffectionLevel(BuildContext context, int level, String label) {
+    state = state.copyWith(
+      affectionLevel: level,
+      affectionLabel: label,
+    );
+    _logState('Affection level saved: $level - $label');
+    context.push('/onboarding/grooming-level');
   }
 
-  /// Save pet ownership experience
-  void setExperience(String exp) {
-    state = state.copyWith(experience: exp);
-    _logState('Experience saved: $exp');
+  void setGroomingLevel(BuildContext context, int level, String label) {
+    state = state.copyWith(
+      groomingLevel: level,
+      groomingLabel: label,
+    );
+    _logState('Grooming level saved: $level - $label');
+    context.push('/onboarding/size-preference');
   }
 
-  /// Save preferred breeds
-  void setPreferredBreeds(List<String> breeds) {
-    state = state.copyWith(preferredBreeds: breeds);
-    _logState('Preferred breeds saved: ${breeds.join(", ")}');
-  }
-
-  /// Save age preference
-  void setAgePreference(String age) {
-    state = state.copyWith(agePreference: age);
-    _logState('Age preference saved: $age');
-  }
-
-  /// Save size preference
-  void setSizePreference(String size) {
+  void setSizePreference(BuildContext context, String size) {
     state = state.copyWith(sizePreference: size);
     _logState('Size preference saved: $size');
+    context.push('/onboarding/household');
   }
 
   /// Save whether user has children
-  void setHasChildren(bool hasChildren) {
-    state = state.copyWith(hasChildren: hasChildren);
-    _logState('Has children saved: $hasChildren');
-  }
-
-  /// Save household pets information
-  void setHasOtherPets(bool hasOtherPets, String? existingPetsDescription) {
+  void setHouseholdInfo(
+      bool hasChildren,
+      bool hasOtherPets,
+      String? existingPetsDescription,
+      bool comfortableWithShyPet,
+      bool financialReady,
+      bool hadPetBefore) {
     state = state.copyWith(
+      hasChildren: hasChildren,
       hasOtherPets: hasOtherPets,
       existingPetsDescription: existingPetsDescription,
+      comfortableWithShyPet: comfortableWithShyPet,
+      financialReady: financialReady,
+      hadPetBefore: hadPetBefore,
     );
     _logState(
-        'Has other pets saved: $hasOtherPets${existingPetsDescription != null ? " - $existingPetsDescription" : ""}');
-  }
-
-  /// Save comfort level with shy pets
-  void setComfortableWithShyPet(bool comfortable) {
-    state = state.copyWith(comfortableWithShyPet: comfortable);
-    _logState('Comfortable with shy pet saved: $comfortable');
+        'Household info saved: $hasChildren, $hasOtherPets, $existingPetsDescription, $comfortableWithShyPet');
   }
 
   Future<bool> submitProfile() async {
+    final authState = ref.watch(authProvider);
+    final userId = authState.userId;
+
     if (!state.isValid) {
       state = state.copyWith(
         errorMessage: 'Please complete all required fields',
@@ -108,19 +107,30 @@ class UserProfileNotifier extends StateNotifier<UserProfileState> {
       print('📤 Submitting profile to backend...');
       print('Profile data: ${state.toJson()}');
 
-      // TODO: Implement actual Supabase save
-      // Example:
-      // final supabase = Supabase.instance.client;
-      // final userId = supabase.auth.currentUser?.id;
-      //
-      // await supabase.from('user_profiles').upsert({
-      //   'user_id': userId,
-      //   ...state.toJson(),
-      //   'updated_at': DateTime.now().toIso8601String(),
-      // });
-
       // Simulate API call
-      await Future.delayed(const Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 10));
+
+      _repository.saveUserProfile(
+        userId: userId!,
+        userLifestyle: {
+          'pet_preference': state.petPreference,
+          'activity_level': state.activityLevel,
+          'grooming_level': state.groomingLevel,
+          'size_preference': state.sizePreference,
+        },
+        personalityTraits: {
+          'snuggly_preference': state.affectionLevel,
+          'training_patience': state.patienceLevel,
+        },
+        householdInfo: {
+          'has_children': state.hasChildren,
+          'has_other_pets': state.hasOtherPets,
+          'existing_pets_description': state.existingPetsDescription,
+          'comfortable_with_shy_pet': state.comfortableWithShyPet,
+          'financial_ready': state.financialReady,
+          'had_pet_before': state.hadPetBefore,
+        },
+      );
 
       state = state.copyWith(
         isSubmitting: false,
@@ -139,18 +149,15 @@ class UserProfileNotifier extends StateNotifier<UserProfileState> {
     }
   }
 
-  /// ✅ Clear all profile data
   void clearProfile() {
     state = const UserProfileState();
     print('🗑️  Profile cleared');
   }
 
-  /// Reset error message
   void clearError() {
     state = state.copyWith(errorMessage: null);
   }
 
-  /// ✅ Console logging for debugging
   void _logState(String message) {
     print('📝 $message');
     print('Current completion: ${state.completionPercentage}%');
@@ -158,7 +165,6 @@ class UserProfileNotifier extends StateNotifier<UserProfileState> {
     print('─' * 50);
   }
 
-  /// Get current profile summary
   String getProfileSummary() {
     final buffer = StringBuffer();
     buffer.writeln('🐾 User Profile Summary:');
@@ -179,8 +185,10 @@ class UserProfileNotifier extends StateNotifier<UserProfileState> {
   }
 }
 
-/// ✅ Provider for user profile state
+final userProfileRepositoryProvider =
+    Provider((ref) => UserProfileRepository());
+
 final userProfileProvider =
-    StateNotifierProvider<UserProfileNotifier, UserProfileState>(
-  (ref) => UserProfileNotifier(),
+    NotifierProvider<UserProfileNotifier, UserProfileState>(
+  UserProfileNotifier.new,
 );

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:petmatch/core/utils/responsive_helper.dart';
+import 'package:petmatch/core/constants/asset_paths.dart';
+import 'package:petmatch/features/user_profile/provider/user_profile_provider.dart';
 import 'package:petmatch/widgets/back_button.dart';
 
 class GroomingLevelSetupScreen extends ConsumerStatefulWidget {
@@ -17,15 +19,14 @@ class GroomingLevelSetupScreen extends ConsumerStatefulWidget {
 class _GroomingLevelSetupScreenState
     extends ConsumerState<GroomingLevelSetupScreen>
     with SingleTickerProviderStateMixin {
-  double _activityLevel = 3.0; // 1-5 scale
-  late AnimationController _pulseController;
+  double _groomingLevel = 3.0; // 1-5 scale
 
   final List<Map<String, dynamic>> _groomingLevels = [
     {
       'value': 1,
       'label': 'Low Maintenance',
       'emoji': '🛋️',
-      'image': 'assets/grooming_faces/low_maintenance.png',
+      'image': UserProfileAssets.groomingLowMaintenance,
       'color': const Color.fromARGB(255, 255, 164, 103),
       'darkColor': const Color.fromARGB(255, 226, 111, 66),
       'description': 'Minimal grooming needed. Low-maintenance lifestyle.'
@@ -34,7 +35,7 @@ class _GroomingLevelSetupScreenState
       'value': 2,
       'label': 'Basic Care',
       'emoji': '😌',
-      'image': 'assets/grooming_faces/basic_care.png',
+      'image': UserProfileAssets.groomingBasicCare,
       'color': const Color.fromARGB(255, 245, 211, 98),
       'darkColor': const Color.fromARGB(255, 218, 158, 47),
       'description': 'Basic grooming required. Occasional brushing or care.'
@@ -43,7 +44,7 @@ class _GroomingLevelSetupScreenState
       'value': 3,
       'label': 'Regular Grooming',
       'emoji': '🚶',
-      'image': 'assets/grooming_faces/regular_grooming.png',
+      'image': UserProfileAssets.groomingRegularGrooming,
       'color': const Color.fromARGB(255, 68, 127, 236),
       'darkColor': const Color.fromARGB(255, 21, 96, 196),
       'description': 'Regular grooming needed. Moderate effort for upkeep.'
@@ -52,7 +53,7 @@ class _GroomingLevelSetupScreenState
       'value': 4,
       'label': 'Frequent Care',
       'emoji': '🏃',
-      'image': 'assets/grooming_faces/frequent_care.png',
+      'image': UserProfileAssets.groomingFrequentCare,
       'color': const Color.fromARGB(255, 166, 72, 243),
       'darkColor': const Color.fromARGB(255, 90, 30, 160),
       'description': 'Frequent grooming required. High attention to care.'
@@ -61,7 +62,7 @@ class _GroomingLevelSetupScreenState
       'value': 5,
       'label': 'High Maintenance',
       'emoji': '💪',
-      'image': 'assets/grooming_faces/high_maintenance.png',
+      'image': UserProfileAssets.groomingHighMaintenance,
       'color': const Color.fromARGB(255, 221, 69, 163),
       'darkColor': const Color.fromARGB(255, 180, 21, 140),
       'description': 'Intensive grooming needed. High-maintenance routine.'
@@ -80,13 +81,12 @@ class _GroomingLevelSetupScreenState
       SystemUiMode.manual,
       overlays: SystemUiOverlay.values,
     );
-    _pulseController.dispose();
     super.dispose();
   }
 
   Map<String, dynamic> get _currentLevel {
     // Round to nearest integer to match one of the 5 levels
-    final roundedLevel = _activityLevel.round();
+    final roundedLevel = _groomingLevel.round();
     return _groomingLevels.firstWhere(
       (level) => level['value'] == roundedLevel,
       orElse: () => _groomingLevels[2],
@@ -160,20 +160,20 @@ class _GroomingLevelSetupScreenState
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        '[ STEP 1 OF 8 ]',
-                        style: TextStyle(
-                          fontSize: getResponsiveValue(
-                            context,
-                            verySmall: 10,
-                            small: 12,
-                            medium: 14,
-                            large: 16,
-                          ),
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+                      // Text(
+                      //   '[ STEP 1 OF 8 ]',
+                      //   style: TextStyle(
+                      //     fontSize: getResponsiveValue(
+                      //       context,
+                      //       verySmall: 10,
+                      //       small: 12,
+                      //       medium: 14,
+                      //       large: 16,
+                      //     ),
+                      //     color: Colors.grey[600],
+                      //     fontWeight: FontWeight.w500,
+                      //   ),
+                      // ),
                       SizedBox(
                         height: getResponsiveValue(
                           context,
@@ -340,7 +340,7 @@ class _GroomingLevelSetupScreenState
                     backgroundColor: _currentLevel['color'].withOpacity(0.5),
                     shadowColor: Colors.transparent,
                   ),
-                  onPressed: _saveActivityLevel,
+                  onPressed: _saveGroomingLevel,
                   child: Container(
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
@@ -451,13 +451,13 @@ class _GroomingLevelSetupScreenState
               borderRadius: BorderRadius.circular(30),
             ),
             child: Slider(
-              value: _activityLevel,
+              value: _groomingLevel,
               min: 1,
               max: 5,
               divisions: 4,
               onChanged: (value) {
                 setState(() {
-                  _activityLevel = value;
+                  _groomingLevel = value;
                 });
               },
             ),
@@ -467,20 +467,11 @@ class _GroomingLevelSetupScreenState
     );
   }
 
-  void _saveActivityLevel() {
-    final activityData = {
-      'training_patience': _activityLevel,
-      'training_label': _currentLevel['label'],
-    };
-
-    // TODO: Save to database
-    print('Activity Data: $activityData');
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Activity level saved: ${_activityLevel}'),
-        backgroundColor: _currentLevel['color'],
-      ),
-    );
+  void _saveGroomingLevel() {
+    ref.read(userProfileProvider.notifier).setGroomingLevel(
+          context,
+          _groomingLevel.round(),
+          _currentLevel['label'],
+        );
   }
 }

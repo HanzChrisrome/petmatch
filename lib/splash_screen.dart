@@ -5,29 +5,49 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:petmatch/features/auth/provider/auth_provider.dart';
+import 'package:petmatch/core/utils/asset_preloader.dart';
 
-class SplashScreen extends ConsumerWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends ConsumerState<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeApp();
+    });
+  }
+
+  Future<void> _initializeApp() async {
     final authNotifier = ref.read(authProvider.notifier);
 
-    Future.microtask(() async {
-      await authNotifier.initializeAuth();
+    // Run auth initialization and asset preloading in parallel
+    await Future.wait([
+      authNotifier.initializeAuth(),
+      UserProfileAssetPreloader.preloadAll(context),
+    ]);
 
-      if (context.mounted) {
-        final authState = ref.read(authProvider);
-        final isAuth = authState.isAuthenticated;
+    if (mounted) {
+      final authState = ref.read(authProvider);
+      final isAuth = authState.isAuthenticated;
 
-        if (!isAuth) {
-          context.go('/get-started');
-        } else {
-          context.go('/home');
-        }
+      if (!isAuth) {
+        context.go('/get-started');
+      } else if (authState.onboardingComplete == false) {
+        context.go('/onboarding/pet-preference');
+      } else {
+        context.go('/home');
       }
-    });
+    }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: Stack(

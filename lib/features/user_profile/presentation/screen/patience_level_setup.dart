@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:petmatch/core/utils/responsive_helper.dart';
+import 'package:petmatch/core/constants/asset_paths.dart';
+import 'package:petmatch/features/user_profile/provider/user_profile_provider.dart';
 import 'package:petmatch/widgets/back_button.dart';
 
 class PatienceLevelSetupScreen extends ConsumerStatefulWidget {
@@ -17,54 +19,58 @@ class PatienceLevelSetupScreen extends ConsumerStatefulWidget {
 class _PatienceLevelSetupScreenState
     extends ConsumerState<PatienceLevelSetupScreen>
     with SingleTickerProviderStateMixin {
-  double _activityLevel = 3.0; // 1-5 scale
-  late AnimationController _pulseController;
+  double _patienceLevel = 3.0; // 1-5 scale
 
-  final List<Map<String, dynamic>> _activityLevels = [
+  final List<Map<String, dynamic>> _patienceLevels = [
     {
       'value': 1,
       'label': 'Very Low',
-      'emoji': '🛋️',
-      'image': 'assets/patience_faces/very_low.png',
+      'emoji': '�',
+      'image': UserProfileAssets.patienceVeryLow,
       'color': const Color.fromARGB(255, 255, 145, 222),
       'darkColor': const Color.fromARGB(255, 180, 80, 150),
-      'description': 'I prefer staying home and relaxing'
+      'description':
+          'I get impatient quickly and prefer short, simple interactions.'
     },
     {
       'value': 2,
       'label': 'Somewhat Low',
-      'emoji': '😌',
-      'image': 'assets/patience_faces/somewhat_low.png',
+      'emoji': '�',
+      'image': UserProfileAssets.patienceSomewhatLow,
       'color': const Color.fromARGB(255, 117, 154, 253),
       'darkColor': const Color.fromARGB(255, 44, 70, 140),
-      'description': 'I enjoy occasional light activities'
+      'description':
+          'I can manage brief training sessions but prefer quick wins.'
     },
     {
       'value': 3,
       'label': 'Moderate',
-      'emoji': '🚶',
-      'image': 'assets/patience_faces/moderate.png',
+      'emoji': '�',
+      'image': UserProfileAssets.patienceModerate,
       'color': const Color.fromARGB(255, 63, 211, 154),
       'darkColor': const Color.fromARGB(255, 20, 120, 80),
-      'description': 'I like regular walks and moderate exercise'
+      'description':
+          'I have steady patience for regular training and reinforcement.'
     },
     {
       'value': 4,
       'label': 'Pretty High',
-      'emoji': '🏃',
-      'image': 'assets/patience_faces/pretty_high.png',
+      'emoji': '😊',
+      'image': UserProfileAssets.patiencePrettyHigh,
       'color': const Color.fromARGB(255, 166, 72, 243),
       'darkColor': const Color.fromARGB(255, 90, 30, 160),
-      'description': 'I exercise regularly and enjoy outdoor activities'
+      'description':
+          'I am comfortable with longer training sessions and gradual progress.'
     },
     {
       'value': 5,
       'label': 'Very High',
-      'emoji': '💪',
-      'image': 'assets/patience_faces/very_high.png',
+      'emoji': '🧘',
+      'image': UserProfileAssets.patienceVeryHigh,
       'color': const Color.fromARGB(255, 231, 122, 49),
       'darkColor': const Color.fromARGB(255, 150, 60, 20),
-      'description': 'I\'m always on the move with high-energy activities'
+      'description':
+          'I have excellent patience and can handle long, consistent training routines.'
     },
   ];
 
@@ -80,16 +86,15 @@ class _PatienceLevelSetupScreenState
       SystemUiMode.manual,
       overlays: SystemUiOverlay.values,
     );
-    _pulseController.dispose();
     super.dispose();
   }
 
   Map<String, dynamic> get _currentLevel {
     // Round to nearest integer to match one of the 5 levels
-    final roundedLevel = _activityLevel.round();
-    return _activityLevels.firstWhere(
+    final roundedLevel = _patienceLevel.round();
+    return _patienceLevels.firstWhere(
       (level) => level['value'] == roundedLevel,
-      orElse: () => _activityLevels[2],
+      orElse: () => _patienceLevels[2],
     );
   }
 
@@ -160,20 +165,20 @@ class _PatienceLevelSetupScreenState
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        '[ STEP 1 OF 8 ]',
-                        style: TextStyle(
-                          fontSize: getResponsiveValue(
-                            context,
-                            verySmall: 10,
-                            small: 12,
-                            medium: 14,
-                            large: 16,
-                          ),
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+                      // Text(
+                      //   '[ STEP 3 OF 8 ]',
+                      //   style: TextStyle(
+                      //     fontSize: getResponsiveValue(
+                      //       context,
+                      //       verySmall: 10,
+                      //       small: 12,
+                      //       medium: 14,
+                      //       large: 16,
+                      //     ),
+                      //     color: Colors.grey[600],
+                      //     fontWeight: FontWeight.w500,
+                      //   ),
+                      // ),
                       SizedBox(
                         height: getResponsiveValue(
                           context,
@@ -184,7 +189,7 @@ class _PatienceLevelSetupScreenState
                         ),
                       ),
                       Text(
-                        'How active \nare you?',
+                        'How patient \nare you?',
                         style: GoogleFonts.newsreader(
                           fontSize: getResponsiveValue(
                             context,
@@ -451,13 +456,13 @@ class _PatienceLevelSetupScreenState
               borderRadius: BorderRadius.circular(30),
             ),
             child: Slider(
-              value: _activityLevel,
+              value: _patienceLevel,
               min: 1,
               max: 5,
               divisions: 4,
               onChanged: (value) {
                 setState(() {
-                  _activityLevel = value;
+                  _patienceLevel = value;
                 });
               },
             ),
@@ -468,19 +473,10 @@ class _PatienceLevelSetupScreenState
   }
 
   void _saveActivityLevel() {
-    final activityData = {
-      'training_patience': _activityLevel,
-      'training_label': _currentLevel['label'],
-    };
-
-    // TODO: Save to database
-    print('Activity Data: $activityData');
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Activity level saved: ${_activityLevel}'),
-        backgroundColor: _currentLevel['color'],
-      ),
-    );
+    ref.read(userProfileProvider.notifier).setPatienceLevel(
+          context,
+          _patienceLevel.round(),
+          _currentLevel['label'],
+        );
   }
 }

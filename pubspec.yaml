@@ -18,6 +18,7 @@ dependencies:
   supabase_flutter: ^2.0.0
   flutter_riverpod: ^2.6.1
   go_router: ^14.6.3
+  cached_network_image: ^3.3.1
 
   # Location Dependencies:
   philippines_rpcmb: ^0.0.3
@@ -52,14 +53,16 @@ flutter:
     - assets/get_started_screen/dog.png
     - assets/get_started_screen/paws.png
 
-    # Activity Faces
-    - assets/activity_faces/
-    - assets/activities_faces/
-    - assets/patience_faces/
-    - assets/affection_faces/
-    - assets/grooming_faces/
-    - assets/pet_preference/
-    - assets/size_preference/
+    # User Profiling
+    - assets/user_profile/activities_faces/
+    - assets/user_profile/patience_faces/
+    - assets/user_profile/affection_faces/
+    - assets/user_profile/grooming_faces/
+    - assets/user_profile/pet_preference/
+    - assets/user_profile/size_preference/
 
     # Lottie Files
-    - assets/lottie/Rotation Cats.json
+    - assets/lottie/
+
+    # Icons
+    - assets/icons/

@@ -1,11 +1,10 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:petmatch/core/utils/responsive_helper.dart';
+import 'package:petmatch/core/constants/asset_paths.dart';
 import 'package:petmatch/features/user_profile/provider/user_profile_provider.dart';
 import 'package:petmatch/widgets/back_button.dart';
 
@@ -17,17 +16,15 @@ class PetPreferenceScreen extends ConsumerStatefulWidget {
       _PetPreferenceScreenState();
 }
 
-class _PetPreferenceScreenState extends ConsumerState<PetPreferenceScreen>
-    with SingleTickerProviderStateMixin {
+class _PetPreferenceScreenState extends ConsumerState<PetPreferenceScreen> {
   double _selectedPetValue = 2.0;
-  late AnimationController _pulseController;
 
   final List<Map<String, dynamic>> _petOptions = [
     {
       'value': 1,
       'label': 'Cat',
       'emoji': '😺',
-      'image': 'assets/pet_preference/cat.png',
+      'image': UserProfileAssets.petPreferenceCat,
       'color': const Color.fromARGB(255, 255, 145, 222),
       'description':
           'Cats are independent and love cozy spaces. Perfect for those who prefer a calm, relaxing home environment.'
@@ -36,7 +33,7 @@ class _PetPreferenceScreenState extends ConsumerState<PetPreferenceScreen>
       'value': 2,
       'label': 'No Preference',
       'emoji': '😌',
-      'image': 'assets/pet_preference/both.png',
+      'image': UserProfileAssets.petPreferenceBoth,
       'color': const Color.fromARGB(255, 117, 154, 253),
       'description':
           'Open to any pet! You enjoy a balanced lifestyle and are flexible with your pet choices.'
@@ -45,7 +42,7 @@ class _PetPreferenceScreenState extends ConsumerState<PetPreferenceScreen>
       'value': 3,
       'label': 'Dog',
       'emoji': '🐶',
-      'image': 'assets/pet_preference/dog.png',
+      'image': UserProfileAssets.petPreferenceDog,
       'color': const Color.fromARGB(255, 63, 211, 154),
       'description':
           'Dogs are energetic and love outdoor activities. Great for those who enjoy regular walks and playtime.'
@@ -64,7 +61,6 @@ class _PetPreferenceScreenState extends ConsumerState<PetPreferenceScreen>
       SystemUiMode.manual,
       overlays: SystemUiOverlay.values,
     );
-    _pulseController.dispose();
     super.dispose();
   }
 
@@ -121,21 +117,21 @@ class _PetPreferenceScreenState extends ConsumerState<PetPreferenceScreen>
                 ),
                 child: Column(
                   children: [
-                    Text(
-                      '[ STEP 1 OF 8 ]',
-                      style: TextStyle(
-                        fontSize: getResponsiveValue(
-                          context,
-                          verySmall: 11,
-                          small: 12,
-                          medium: 13,
-                          large: 14,
-                        ),
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
+                    // Text(
+                    //   '[ STEP 1 OF 8 ]',
+                    //   style: TextStyle(
+                    //     fontSize: getResponsiveValue(
+                    //       context,
+                    //       verySmall: 11,
+                    //       small: 12,
+                    //       medium: 13,
+                    //       large: 14,
+                    //     ),
+                    //     color: Colors.grey[600],
+                    //     fontWeight: FontWeight.w500,
+                    //     letterSpacing: 1.2,
+                    //   ),
+                    // ),
                     SizedBox(
                       height: getResponsiveValue(
                         context,
@@ -453,15 +449,8 @@ class _PetPreferenceScreenState extends ConsumerState<PetPreferenceScreen>
   void _savePetPreference() {
     // Get the selected pet preference
     final selectedPet = _currentPetOption['label'] as String;
-    ref.read(userProfileProvider.notifier).setPetPreference(selectedPet);
-
-    // Show success message
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Pet preference saved: $selectedPet'),
-        backgroundColor: _currentPetOption['color'],
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    ref
+        .read(userProfileProvider.notifier)
+        .setPetPreference(context, selectedPet);
   }
 }

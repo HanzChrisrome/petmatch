@@ -1,9 +1,13 @@
+// ignore_for_file: unnecessary_brace_in_string_interps
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:petmatch/core/utils/responsive_helper.dart';
+import 'package:petmatch/core/constants/asset_paths.dart';
+import 'package:petmatch/features/user_profile/provider/user_profile_provider.dart';
 import 'package:petmatch/widgets/back_button.dart';
 
 class ActivityLevelSetupScreen extends ConsumerStatefulWidget {
@@ -24,7 +28,7 @@ class _ActivityLevelSetupScreenState
       'value': 1,
       'label': 'Inactive',
       'emoji': '🛋️',
-      'image': 'assets/activities_faces/inactive.png',
+      'image': UserProfileAssets.activityInactive,
       'color': const Color.fromARGB(255, 247, 127, 211),
       'description': 'I prefer staying home and relaxing'
     },
@@ -32,7 +36,7 @@ class _ActivityLevelSetupScreenState
       'value': 2,
       'label': 'Lightly Active',
       'emoji': '😌',
-      'image': 'assets/activities_faces/lightly_active.png',
+      'image': UserProfileAssets.activityLightlyActive,
       'color': const Color.fromARGB(255, 104, 186, 253),
       'description': 'I enjoy occasional light activities'
     },
@@ -40,7 +44,7 @@ class _ActivityLevelSetupScreenState
       'value': 3,
       'label': 'Moderately Active',
       'emoji': '🚶',
-      'image': 'assets/activities_faces/moderately_active.png',
+      'image': UserProfileAssets.activityModeratelyActive,
       'color': const Color.fromARGB(255, 143, 103, 253), // Orange from image
       'description': 'I like regular walks and moderate exercise'
     },
@@ -48,7 +52,7 @@ class _ActivityLevelSetupScreenState
       'value': 4,
       'label': 'Very Active',
       'emoji': '🏃',
-      'image': 'assets/activities_faces/very_active.png',
+      'image': UserProfileAssets.activityVeryActive,
       'color': const Color.fromARGB(255, 255, 206, 43), // Red from image
       'description': 'I exercise regularly and enjoy outdoor activities'
     },
@@ -56,7 +60,7 @@ class _ActivityLevelSetupScreenState
       'value': 5,
       'label': 'Extremely Active',
       'emoji': '💪',
-      'image': 'assets/activities_faces/extremely_active.png',
+      'image': UserProfileAssets.activityExtremelyActive,
       'color': const Color.fromARGB(255, 39, 209, 53), // Bright red from image
       'description': 'I\'m always on the move with high-energy activities'
     },
@@ -257,20 +261,20 @@ class _ActivityLevelSetupScreenState
                     crossAxisAlignment:
                         CrossAxisAlignment.center, // Center horizontally
                     children: [
-                      Text(
-                        '[ STEP 1 OF 8 ]',
-                        style: TextStyle(
-                          fontSize: getResponsiveValue(
-                            context,
-                            verySmall: 12,
-                            small: 13,
-                            medium: 15,
-                            large: 16,
-                          ),
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+                      // Text(
+                      //   '[ STEP 2 OF 8 ]',
+                      //   style: TextStyle(
+                      //     fontSize: getResponsiveValue(
+                      //       context,
+                      //       verySmall: 12,
+                      //       small: 13,
+                      //       medium: 15,
+                      //       large: 16,
+                      //     ),
+                      //     color: Colors.grey[600],
+                      //     fontWeight: FontWeight.w500,
+                      //   ),
+                      // ),
                       SizedBox(
                         height: getResponsiveValue(
                           context,
@@ -478,19 +482,7 @@ class _ActivityLevelSetupScreenState
   }
 
   void _saveActivityLevel() {
-    final activityData = {
-      'activity_level': _activityLevel,
-      'activity_label': _currentLevel['label'],
-    };
-
-    // TODO: Save to database
-    print('Activity Data: $activityData');
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Activity level saved: ${_activityLevel}'),
-        backgroundColor: _currentLevel['color'],
-      ),
-    );
+    ref.read(userProfileProvider.notifier).setActivityLevel(
+        context, _activityLevel.round(), _currentLevel['label']);
   }
 }

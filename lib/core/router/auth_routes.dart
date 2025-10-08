@@ -3,6 +3,7 @@ import 'package:petmatch/core/utils/page_transitions.dart';
 import 'package:petmatch/features/auth/presentation/screens/forgot_password.dart';
 import 'package:petmatch/features/auth/presentation/screens/login_screen.dart';
 import 'package:petmatch/features/auth/presentation/screens/register_screen.dart';
+import 'package:petmatch/features/auth/presentation/screens/verify_email_screen.dart';
 
 final authRoutes = [
   GoRoute(
@@ -35,6 +36,29 @@ final authRoutes = [
       return slideTransitionBuilder(
         context,
         const ForgotPasswordScreen(),
+      );
+    },
+  ),
+  GoRoute(
+    path: '/verify-email',
+    name: 'verify-email',
+    builder: (context, state) {
+      final email = state.uri.queryParameters['email'] ?? '';
+      final password = state.uri.queryParameters['password'];
+      return VerifyEmailScreen(
+        email: email,
+        password: password,
+      );
+    },
+    pageBuilder: (context, state) {
+      final email = state.uri.queryParameters['email'] ?? '';
+      final password = state.uri.queryParameters['password'];
+      return slideTransitionBuilder(
+        context,
+        VerifyEmailScreen(
+          email: email,
+          password: password,
+        ),
       );
     },
   ),

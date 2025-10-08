@@ -18,7 +18,7 @@ class PetPreferenceExample extends ConsumerWidget {
     return ElevatedButton(
       onPressed: () {
         // ✅ Save selected pet preference
-        ref.read(userProfileProvider.notifier).setPetPreference('Dog');
+        ref.read(userProfileProvider.notifier).setPetPreference(context, 'Dog');
 
         // Navigate to next screen
         // context.push('/activity-level');
@@ -46,6 +46,7 @@ class _ActivityLevelExampleState extends ConsumerState<ActivityLevelExample> {
   void _saveActivityLevel() {
     // ✅ Save activity level with label
     ref.read(userProfileProvider.notifier).setActivityLevel(
+          context,
           _activityLevel.round(),
           'Moderately Active', // Label corresponding to the level
         );
@@ -81,6 +82,7 @@ class _AffectionLevelExampleState extends ConsumerState<AffectionLevelExample> {
   void _saveAffectionLevel() {
     // ✅ Save affection level with label
     ref.read(userProfileProvider.notifier).setAffectionLevel(
+          context,
           _affectionLevel.round(),
           'Balanced', // Label corresponding to the level
         );
@@ -116,6 +118,7 @@ class _PatienceLevelExampleState extends ConsumerState<PatienceLevelExample> {
   void _savePatienceLevel() {
     // ✅ Save patience level with label
     ref.read(userProfileProvider.notifier).setPatienceLevel(
+          context,
           _patienceLevel.round(),
           'Moderate Patience', // Label corresponding to the level
         );

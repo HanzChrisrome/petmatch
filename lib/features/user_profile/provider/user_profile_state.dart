@@ -10,7 +10,7 @@ class UserProfileState with _$UserProfileState {
 
   const factory UserProfileState({
     // Pet preference
-    String? petPreference, // 'Cat', 'Dog', 'No Preference'
+    String? petPreference,
 
     // Activity level (Step 1)
     int? activityLevel, // 1-5
@@ -24,13 +24,17 @@ class UserProfileState with _$UserProfileState {
     int? patienceLevel, // 1-5
     String? patienceLabel,
 
-    // Has children (Yes/No)
-    bool? hasChildren,
+    // Grooming level (Step 4)
+    int? groomingLevel, // 1-5
+    String? groomingLabel,
 
     // Household fields
+    bool? hasChildren,
     bool? hasOtherPets,
     String? existingPetsDescription,
     bool? comfortableWithShyPet,
+    bool? financialReady,
+    bool? hadPetBefore,
 
     // Additional fields for future steps
     String? livingSpace, // e.g., 'Apartment', 'House', etc.
@@ -57,12 +61,13 @@ class UserProfileState with _$UserProfileState {
 
   int get completionPercentage {
     int filledFields = 0;
-    int totalFields = 4; // pet, activity, affection, patience
+    int totalFields = 5;
 
     if (petPreference != null) filledFields++;
     if (activityLevel != null) filledFields++;
     if (affectionLevel != null) filledFields++;
     if (patienceLevel != null) filledFields++;
+    if (groomingLevel != null) filledFields++;
 
     return ((filledFields / totalFields) * 100).round();
   }

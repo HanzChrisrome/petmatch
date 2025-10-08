@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:lottie/lottie.dart';
 import 'package:petmatch/features/auth/provider/auth_provider.dart';
+import 'package:petmatch/features/home/provider/pets_provider/pet_provider.dart';
 import 'package:petmatch/features/home/widgets/custom_bottom_navbar.dart';
+import 'package:petmatch/features/home/widgets/pet_details_modal.dart';
+import 'package:petmatch/core/model/pet_model.dart';
 
 class LandingDashboard extends ConsumerStatefulWidget {
   const LandingDashboard({super.key});
@@ -12,51 +17,32 @@ class LandingDashboard extends ConsumerStatefulWidget {
 
 class _LandingDashboardState extends ConsumerState<LandingDashboard> {
   int _selectedCategoryIndex = 0;
-  int _selectedNavIndex = 0;
 
-  final List<Map<String, dynamic>> _categories = [
-    {'name': 'All', 'icon': Icons.apps},
-    {'name': 'Cat', 'icon': Icons.pets},
-    {'name': 'Turtle', 'icon': Icons.cruelty_free},
-    {'name': 'Dog', 'icon': Icons.pets},
-    {'name': 'Bird', 'icon': Icons.flutter_dash},
+  // Colors for pet cards
+  final List<Color> _cardColors = [
+    const Color(0xFFFFF4E0),
+    const Color(0xFFE8E8E8),
+    const Color(0xFFFFE4F0),
+    const Color(0xFFE3F2FD),
+    const Color(0xFFF3E5F5),
   ];
 
-  final List<Map<String, dynamic>> _pets = [
-    {
-      'name': 'Rocky Blaze',
-      'gender': 'Female',
-      'age': '8 months',
-      'image': 'assets/pets/dog1.jpg',
-      'color': const Color(0xFFFFF4E0),
-    },
-    {
-      'name': 'Nova Meow',
-      'gender': 'Male',
-      'age': '2 years',
-      'image': 'assets/pets/cat1.jpg',
-      'color': const Color(0xFFE8E8E8),
-    },
-    {
-      'name': 'Shadow',
-      'gender': 'Male',
-      'age': '1 year',
-      'image': 'assets/pets/cat2.jpg',
-      'color': const Color(0xFFFFE4F0),
-    },
-    {
-      'name': 'Bella',
-      'gender': 'Female',
-      'age': '6 months',
-      'image': 'assets/pets/dog2.jpg',
-      'color': const Color(0xFFFFF4E0),
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(petsProvider.notifier).fetchAllPets();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-    final userName = authState.userName ?? 'User';
+    final userName =
+        authState.userName ?? authState.userEmail?.split('@').first ?? 'User';
+
+    // Watch pets state
+    final petsState = ref.watch(petsProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -64,34 +50,74 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
         child: Column(
           children: [
             // Header
-            _buildHeader(),
-
-            // Scrollable Content
+            _buildHeader(userName),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16),
-
-                    // Promotional Banner
-                    _buildPromoBanner(),
-
-                    const SizedBox(height: 24),
-
-                    // Categories Section
-                    _buildCategoriesSection(),
-
-                    const SizedBox(height: 20),
-
-                    // Pets Grid
-                    _buildPetsGrid(),
-
-                    const SizedBox(height: 80),
-                  ],
-                ),
-              ),
+              child: petsState.isLoading
+                  ? Container(
+                      color: Colors.white,
+                      child: Center(
+                        child: SizedBox(
+                          width: 320,
+                          height: 320,
+                          child: Lottie.asset(
+                            'assets/lottie/Catloading.json',
+                            fit: BoxFit.contain,
+                            repeat: true,
+                          ),
+                        ),
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (petsState.errorMessage != null)
+                            Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(32.0),
+                                child: Column(
+                                  children: [
+                                    Icon(Icons.error_outline,
+                                        size: 48, color: Colors.red[300]),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Error loading pets',
+                                      style: TextStyle(color: Colors.red[300]),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      petsState.errorMessage!,
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[600]),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    TextButton(
+                                      onPressed: () {
+                                        ref
+                                            .read(petsProvider.notifier)
+                                            .refresh();
+                                      },
+                                      child: const Text('Retry'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          else
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildCategoryCards(),
+                                _buildPetsGrid(petsState.pets ?? []),
+                              ],
+                            ),
+                          const SizedBox(height: 80),
+                        ],
+                      ),
+                    ),
             ),
           ],
         ),
@@ -100,7 +126,7 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(String userName) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -125,9 +151,9 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
                     color: Colors.grey[600],
                   ),
                 ),
-                const Text(
-                  'Jobayer Mahbub',
-                  style: TextStyle(
+                Text(
+                  userName,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
@@ -246,100 +272,80 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
     );
   }
 
-  Widget _buildCategoriesSection() {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Categories',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            TextButton(
-              onPressed: () {},
-              child: const Text(
-                'See All',
-                style: TextStyle(
-                  color: Colors.orange,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 90,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: _categories.length,
-            itemBuilder: (context, index) {
-              final isSelected = _selectedCategoryIndex == index;
-              final category = _categories[index];
-              return Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedCategoryIndex = index;
-                    });
-                  },
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? Theme.of(context).colorScheme.primary
-                              : _getCategoryColor(index),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          category['icon'],
-                          color: isSelected ? Colors.white : Colors.grey[700],
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        category['name'],
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.normal,
-                          color: isSelected ? Colors.black : Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
+  Widget _buildCategoryCards() {
+    final categories = [
+      {
+        'title': 'Cat',
+        'icon': Icons.pets,
+        'index': 1,
+      },
+      {
+        'title': 'Dog',
+        'icon': Icons.pets,
+        'index': 3,
+      },
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: categories.map((category) {
+          final isSelected = _selectedCategoryIndex == category['index'];
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedCategoryIndex = category['index'] as int;
+              });
+              ref
+                  .read(petsProvider.notifier)
+                  .filterByCategory(category['title'] as String);
             },
-          ),
-        ),
-      ],
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.orange[100] : Colors.grey[200],
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected ? Colors.orange : Colors.transparent,
+                  width: 2,
+                ),
+              ),
+              width: 64,
+              height: 64,
+              child: Icon(
+                category['icon'] as IconData,
+                size: 36,
+                color: category['title'] == 'Cat'
+                    ? Colors.pink[400]
+                    : Colors.blue[400],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 
-  Color _getCategoryColor(int index) {
-    final colors = [
-      const Color(0xFFE8D4F8),
-      const Color(0xFFFFF9C4),
-      const Color(0xFFB2DFDB),
-      const Color(0xFFFFCDD2),
-      const Color(0xFFB3E5FC),
-    ];
-    return colors[index % colors.length];
-  }
+  Widget _buildPetsGrid(List<Pet> pets) {
+    if (pets.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            children: [
+              Icon(Icons.pets, size: 64, color: Colors.grey[300]),
+              const SizedBox(height: 16),
+              Text(
+                'No pets found',
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
-  Widget _buildPetsGrid() {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -349,81 +355,158 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
       ),
-      itemCount: _pets.length,
+      itemCount: pets.length,
       itemBuilder: (context, index) {
-        final pet = _pets[index];
-        return _buildPetCard(pet);
+        final pet = pets[index];
+        final cardColor = _cardColors[index % _cardColors.length];
+        return _buildPetCard(pet, cardColor, index, pets);
       },
     );
   }
 
-  Widget _buildPetCard(Map<String, dynamic> pet) {
-    return Container(
-      decoration: BoxDecoration(
-        color: pet['color'],
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Pet Image
-          Expanded(
-            flex: 3,
-            child: Container(
-              decoration: BoxDecoration(
+  Widget _buildPetCard(Pet pet, Color cardColor, int index, List<Pet> allPets) {
+    return GestureDetector(
+      onTap: () {
+        showPetDetailsModal(context, allPets, index);
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Pet Image from Supabase Storage
+            Expanded(
+              flex: 5,
+              child: ClipRRect(
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(20)),
-                color: pet['color'],
-              ),
-              child: Center(
-                child: Image.asset(
-                  pet['image'],
+                child: CachedNetworkImage(
+                  imageUrl: pet.thumbnailUrl ?? '',
+                  width: double.infinity,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Icon(
-                      Icons.pets,
-                      size: 60,
-                      color: Colors.grey[400],
-                    );
-                  },
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[200],
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Colors.grey[200],
+                    child: const Center(
+                      child: Icon(Icons.pets, size: 64, color: Colors.grey),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // Pet Info
-          Expanded(
-            flex: 1,
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0),
+            // Pet Info
+            Container(
+              padding: const EdgeInsets.all(10.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Pet Name
                   Text(
-                    pet['name'],
+                    pet.name,
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
                     ),
-                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
-                  Text(
-                    '${pet['gender']}  ${pet['age']}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey[600],
-                    ),
+                  const SizedBox(height: 3),
+                  // Gender and Age Category
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Gender
+                      if (pet.gender != null)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              pet.gender?.toLowerCase() == 'male'
+                                  ? Icons.male
+                                  : Icons.female,
+                              size: 12,
+                              color: pet.gender?.toLowerCase() == 'male'
+                                  ? Colors.blue[700]
+                                  : Colors.pink[700],
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              pet.gender!,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: pet.gender?.toLowerCase() == 'male'
+                                    ? Colors.blue[700]
+                                    : Colors.pink[700],
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      // Age category
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: pet.ageCategory == 'Young'
+                              ? Colors.green[50]
+                              : Colors.orange[50],
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: pet.ageCategory == 'Young'
+                                ? Colors.green[300]!
+                                : Colors.orange[300]!,
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          pet.ageCategory,
+                          style: TextStyle(
+                            fontSize: 9,
+                            color: pet.ageCategory == 'Young'
+                                ? Colors.green[700]
+                                : Colors.orange[700],
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  // Helper method to clean breed text by removing emojis and extra info
+  String _cleanBreedText(String breed) {
+    // Remove emojis and flags
+    String cleaned =
+        breed.replaceAll(RegExp(r'[\u{1F300}-\u{1F9FF}]', unicode: true), '');
+    cleaned =
+        cleaned.replaceAll(RegExp(r'[\u{2600}-\u{26FF}]', unicode: true), '');
+    cleaned =
+        cleaned.replaceAll(RegExp(r'[\u{1F1E6}-\u{1F1FF}]', unicode: true), '');
+
+    // Remove "BOTTOM OVERLORD BY" text
+    cleaned =
+        cleaned.replaceAll(RegExp(r'BOTTOM OVER[A-Z]+ BY \d+ PIXELS'), '');
+
+    // Clean up extra spaces
+    cleaned = cleaned.replaceAll(RegExp(r'\s+'), ' ').trim();
+
+    return cleaned;
   }
 }

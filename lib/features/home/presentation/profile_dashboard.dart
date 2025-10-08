@@ -162,50 +162,10 @@ class _ProfileDashboardState extends ConsumerState<ProfileDashboard> {
             ),
 
             _buildMenuItem(
-              icon: Icons.favorite_border,
-              title: 'Has Children',
-              onTap: () {
-                context.push('/home/user-has-children-setup');
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.favorite_border,
-              title: 'Lifestyle',
-              onTap: () {
-                context.push('/home/lifestyle-setup');
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.download_outlined,
-              title: 'Preferences',
-              onTap: () {
-                context.push('/home/pet-preferences-setup');
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.language,
-              title: 'Personality',
-              onTap: () {
-                context.push('/home/personality-setup');
-              },
-            ),
-
-            _buildMenuItem(
               icon: Icons.location_on_outlined,
               title: 'Household',
               onTap: () {
                 context.push('/home/household-setup');
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.card_membership_outlined,
-              title: 'Responsibility',
-              onTap: () {
-                context.push('/home/responsibility-setup');
               },
             ),
 

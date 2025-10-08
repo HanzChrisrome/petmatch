@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:petmatch/core/utils/responsive_helper.dart';
 import 'package:petmatch/features/user_profile/provider/user_profile_provider.dart';
+import 'package:petmatch/features/user_profile/presentation/widgets/saving_loading.dart';
+import 'package:go_router/go_router.dart';
 import 'package:petmatch/widgets/back_button.dart';
 import 'package:petmatch/widgets/custom_button.dart';
 import 'package:petmatch/widgets/style/themed_textfield.dart';
@@ -22,12 +24,26 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
   // Controllers
   final TextEditingController _existingPetsController = TextEditingController();
 
-  // Selected values
   bool? _hasOtherPets;
   bool? _hasChildren;
   bool? _comfortableWithShyPet;
   bool? _financiallyReady;
   bool? _hadPetsBefore;
+
+  @override
+  void initState() {
+    super.initState();
+    final profile = ref.read(userProfileProvider);
+    _hasOtherPets = profile.hasOtherPets;
+    final existingText = profile.existingPetsDescription ?? '';
+    if (_existingPetsController.text != existingText) {
+      _existingPetsController.text = existingText;
+    }
+    _hasChildren = profile.hasChildren;
+    _comfortableWithShyPet = profile.comfortableWithShyPet;
+    _financiallyReady = profile.financialReady;
+    _hadPetsBefore = profile.hadPetBefore;
+  }
 
   @override
   void dispose() {
@@ -71,20 +87,20 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
                   onTap: () => Navigator.of(context).pop(),
                 ),
                 SizedBox(height: isSmallScreen ? 10 : 20),
-                Text(
-                  '[ STEP 1 OF 8 ]',
-                  style: TextStyle(
-                    fontSize: getResponsiveValue(
-                      context,
-                      verySmall: 10,
-                      small: 12,
-                      medium: 14,
-                      large: 16,
-                    ),
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                // Text(
+                //   '[ STEP 1 OF 8 ]',
+                //   style: TextStyle(
+                //     fontSize: getResponsiveValue(
+                //       context,
+                //       verySmall: 10,
+                //       small: 12,
+                //       medium: 14,
+                //       large: 16,
+                //     ),
+                //     color: Colors.grey[600],
+                //     fontWeight: FontWeight.w500,
+                //   ),
+                // ),
                 const SizedBox(height: 20),
                 Text(
                   'Tell us about your household.',
@@ -545,7 +561,7 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
     );
   }
 
-  void _submitHousehold() {
+  void _submitHousehold() async {
     // Validate that all required fields are filled
     if (_hasOtherPets == null ||
         _hasChildren == null ||
@@ -560,22 +576,33 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
     }
 
     // Save to provider
-    final notifier = ref.read(userProfileProvider.notifier);
+    ref.read(userProfileProvider.notifier).setHouseholdInfo(
+          _hasChildren!,
+          _hasOtherPets!,
+          _existingPetsController.text.isNotEmpty
+              ? _existingPetsController.text
+              : null,
+          _comfortableWithShyPet!,
+          _financiallyReady ?? false,
+          _hadPetsBefore ?? false,
+        );
 
-    // Save household data
-    notifier.setHasOtherPets(
-      _hasOtherPets!,
-      _hasOtherPets == true ? _existingPetsController.text : null,
-    );
-    notifier.setHasChildren(_hasChildren!);
-    notifier.setComfortableWithShyPet(_comfortableWithShyPet!);
+    context.push('/onboarding/profile-loading');
 
-    // Show success message
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Household setup complete! 🎉'),
-        backgroundColor: Color(0xFF22C55E),
-      ),
-    );
+    final success =
+        await ref.read(userProfileProvider.notifier).submitProfile();
+
+    if (context.canPop()) context.pop();
+
+    if (success) {
+      context.go('/home');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to save profile. Please try again.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
   }
 }

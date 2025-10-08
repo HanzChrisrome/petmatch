@@ -66,28 +66,6 @@ class _GetStartedScreenState extends State<GetStartedScreen>
             ),
           ),
 
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: 210,
-            child: IgnorePointer(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Theme.of(context).colorScheme.primary,
-                      const Color(0x001B7A75),
-                    ],
-                    stops: const [0.0, 0.9],
-                  ),
-                ),
-              ),
-            ),
-          ),
-
           AnimatedBuilder(
             animation: _ctrl,
             builder: (context, child) {
@@ -133,7 +111,7 @@ class _GetStartedScreenState extends State<GetStartedScreen>
                               .headlineMedium
                               ?.copyWith(
                                 fontSize: isSmallScreen ? 28 : 34,
-                                color: const Color(0xFF1B5E5A),
+                                color: Theme.of(context).colorScheme.secondary,
                                 height: 1.2,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -146,7 +124,8 @@ class _GetStartedScreenState extends State<GetStartedScreen>
                                   .headlineMedium
                                   ?.copyWith(
                                     fontSize: isSmallScreen ? 28 : 34,
-                                    color: const Color(0xFF1B7A75),
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
                                     height: 1.2,
                                     fontWeight: FontWeight.w900,
                                     fontStyle: FontStyle.italic,
@@ -183,12 +162,12 @@ class _GetStartedScreenState extends State<GetStartedScreen>
                     context.push('/register');
                   },
                   icon: Icons.pets,
+                  backgroundColor: const Color.fromARGB(255, 24, 24, 24),
                   verticalPadding: isSmallScreen ? 12 : 14,
                 ),
 
                 SizedBox(height: isSmallScreen ? 12 : 16),
 
-                // Sign In link
                 GestureDetector(
                   onTap: () {
                     context.push('/login');

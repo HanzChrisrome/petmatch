@@ -1,11 +1,11 @@
-// ignore_for_file: avoid_print
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:petmatch/core/utils/responsive_helper.dart';
+import 'package:petmatch/core/constants/asset_paths.dart';
+import 'package:petmatch/features/user_profile/provider/user_profile_provider.dart';
 import 'package:petmatch/widgets/back_button.dart';
 
 class AffectionLevelSetupScreen extends ConsumerStatefulWidget {
@@ -19,14 +19,14 @@ class AffectionLevelSetupScreen extends ConsumerStatefulWidget {
 class _AffectionLevelSetupScreenState
     extends ConsumerState<AffectionLevelSetupScreen>
     with SingleTickerProviderStateMixin {
-  double _activityLevel = 3.0;
+  double _affectionLevel = 3.0;
 
   final List<Map<String, dynamic>> _affectionLevels = [
     {
       'value': 1,
       'label': 'Very Independent',
-      'emoji': '�‍♂️',
-      'image': 'assets/affection_faces/very_independent.png',
+      'emoji': '🧘‍♂️',
+      'image': UserProfileAssets.affectionVeryIndependent,
       'color': const Color.fromARGB(255, 133, 54, 179),
       'description': 'I prefer having my own space and time'
     },
@@ -34,15 +34,15 @@ class _AffectionLevelSetupScreenState
       'value': 2,
       'label': 'Somewhat Independent',
       'emoji': '😌',
-      'image': 'assets/affection_faces/somewhat_independent.png',
+      'image': UserProfileAssets.affectionSomewhatIndependent,
       'color': const Color.fromARGB(255, 201, 65, 194),
       'description': 'I enjoy occasional affection but value independence'
     },
     {
       'value': 3,
       'label': 'Balanced',
-      'emoji': '�',
-      'image': 'assets/affection_faces/balanced.png',
+      'emoji': '⚖️',
+      'image': UserProfileAssets.affectionBalanced,
       'color': const Color.fromARGB(255, 50, 122, 182),
       'description': 'I like a good mix of affection and independence'
     },
@@ -50,15 +50,15 @@ class _AffectionLevelSetupScreenState
       'value': 4,
       'label': 'Pretty Affectionate',
       'emoji': '🤗',
-      'image': 'assets/affection_faces/pretty_affectionate.png',
+      'image': UserProfileAssets.affectionPrettyAffectionate,
       'color': const Color.fromARGB(255, 48, 50, 184),
       'description': 'I enjoy regular affection and companionship'
     },
     {
       'value': 5,
       'label': 'Very Affectionate',
-      'emoji': '�',
-      'image': 'assets/affection_faces/very_affectionate.png',
+      'emoji': '💖',
+      'image': UserProfileAssets.affectionVeryAffectionate,
       'color': const Color.fromARGB(255, 16, 64, 153),
       'description': 'I love constant affection and closeness'
     },
@@ -81,7 +81,7 @@ class _AffectionLevelSetupScreenState
 
   Map<String, dynamic> get _currentLevel {
     // Round to nearest integer to match one of the 5 levels
-    final roundedLevel = _activityLevel.round();
+    final roundedLevel = _affectionLevel.round();
     return _affectionLevels.firstWhere(
       (level) => level['value'] == roundedLevel,
       orElse: () => _affectionLevels[2],
@@ -259,20 +259,20 @@ class _AffectionLevelSetupScreenState
                     crossAxisAlignment:
                         CrossAxisAlignment.center, // Center horizontally
                     children: [
-                      Text(
-                        '[ STEP 1 OF 8 ]',
-                        style: TextStyle(
-                          fontSize: getResponsiveValue(
-                            context,
-                            verySmall: 12,
-                            small: 13,
-                            medium: 15,
-                            large: 16,
-                          ),
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+                      // Text(
+                      //   '[ STEP 4 OF 8 ]',
+                      //   style: TextStyle(
+                      //     fontSize: getResponsiveValue(
+                      //       context,
+                      //       verySmall: 12,
+                      //       small: 13,
+                      //       medium: 15,
+                      //       large: 16,
+                      //     ),
+                      //     color: Colors.grey[600],
+                      //     fontWeight: FontWeight.w500,
+                      //   ),
+                      // ),
                       SizedBox(
                         height: getResponsiveValue(
                           context,
@@ -463,13 +463,13 @@ class _AffectionLevelSetupScreenState
               borderRadius: BorderRadius.circular(30),
             ),
             child: Slider(
-              value: _activityLevel,
+              value: _affectionLevel,
               min: 1,
               max: 5,
               divisions: 4,
               onChanged: (value) {
                 setState(() {
-                  _activityLevel = value;
+                  _affectionLevel = value;
                 });
               },
             ),
@@ -480,18 +480,7 @@ class _AffectionLevelSetupScreenState
   }
 
   void _saveAffectionLevel() {
-    final activityData = {
-      'affection_preference': _activityLevel,
-      'affection_label': _currentLevel['label'],
-    };
-
-    print('Activity Data: $activityData');
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Activity level saved: ${_activityLevel}'),
-        backgroundColor: _currentLevel['color'],
-      ),
-    );
+    ref.read(userProfileProvider.notifier).setAffectionLevel(
+        context, _affectionLevel.round(), _currentLevel['label']);
   }
 }

@@ -2,15 +2,11 @@
 
 import 'dart:async';
 
-import 'package:flutter/services.dart';
-// location imports removed — location/region fields are not needed here
-import 'package:petmatch/core/utils/notifier_helpers.dart';
 import 'package:petmatch/core/utils/validators.dart';
 import 'package:petmatch/features/auth/provider/auth_provider.dart';
+import 'package:petmatch/widgets/back_button.dart';
 import 'package:petmatch/widgets/custom_button.dart';
-import 'package:petmatch/widgets/outline_button.dart';
 import 'package:petmatch/widgets/text_field.dart';
-import 'package:petmatch/widgets/text_gradient.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -79,55 +75,63 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Theme.of(context).colorScheme.surface,
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final kb = MediaQuery.of(context).viewInsets.bottom;
-            return SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: EdgeInsets.only(bottom: kb), // keyboard-aware padding
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Column(
-                    children: [
-                      AnimatedCrossFade(
-                        firstChild: Padding(
-                          padding:
-                              EdgeInsets.only(top: isSmallScreen ? 30 : 50),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Image(
-                                image: const AssetImage(
-                                    'assets/petmatch_logo.png'),
-                                height: isSmallScreen ? 64 : 84,
-                                fit: BoxFit.contain,
+      body: Stack(
+        children: [
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final kb = MediaQuery.of(context).viewInsets.bottom;
+              return SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.only(bottom: kb),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AnimatedCrossFade(
+                          firstChild: Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(30),
+                                bottomRight: Radius.circular(30),
                               ),
-                              SizedBox(height: isSmallScreen ? 12 : 20),
-                              Text(
-                                'Your journey starts here\nTake the first step',
-                                style: TextStyle(
-                                  fontSize: isSmallScreen ? 20 : 24,
-                                  height: 1.1,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                top: isSmallScreen ? 20 : 90,
+                                bottom: isSmallScreen ? 30 : 50,
                               ),
-                            ],
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Image(
+                                    image: const AssetImage(
+                                        'assets/petmatch_logo.png'),
+                                    height: isSmallScreen ? 84 : 150,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
+                          secondChild: const SizedBox.shrink(),
+                          crossFadeState: kb > 0
+                              ? CrossFadeState.showSecond
+                              : CrossFadeState.showFirst,
+                          duration: const Duration(milliseconds: 220),
+                          sizeCurve: Curves.easeInOut,
                         ),
-                        secondChild: const SizedBox.shrink(),
-                        crossFadeState: kb > 0
-                            ? CrossFadeState.showSecond
-                            : CrossFadeState.showFirst,
-                        duration: const Duration(milliseconds: 220),
-                        sizeCurve: Curves.easeInOut,
-                      ),
 
-                      SizedBox(height: isSmallScreen ? 40 : 70),
-                      Center(
-                        child: ConstrainedBox(
+                        SizedBox(
+                            height: isSmallScreen
+                                ? 40
+                                : kb > 0
+                                    ? 130
+                                    : 40),
+                        ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 420),
                           child: Padding(
                             padding: EdgeInsets.symmetric(
@@ -135,6 +139,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Login',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .headlineMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Welcome to PetMatch! Find your perfect pet companion and connect with loving animals looking for a home.',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
+                                                  .withOpacity(0.7),
+                                            ),
+                                      ),
+                                      const SizedBox(height: 24),
+                                    ],
+                                  ),
+                                ),
                                 TextFieldWidget(
                                   label: 'Email',
                                   controller: emailController,
@@ -147,11 +186,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       .withOpacity(0.05),
                                   borderColor: Theme.of(context)
                                       .colorScheme
-                                      .primary
+                                      .onPrimary
                                       .withOpacity(0.5),
                                   filled: true,
                                   focusedBorderColor:
-                                      Theme.of(context).colorScheme.primary,
+                                      Theme.of(context).colorScheme.onPrimary,
                                 ),
                                 TextFieldWidget(
                                   label: 'Password',
@@ -164,13 +203,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       .withOpacity(0.05),
                                   borderColor: Theme.of(context)
                                       .colorScheme
-                                      .primary
+                                      .onPrimary
                                       .withOpacity(0.5),
                                   filled: true,
                                   iconColor:
                                       Theme.of(context).colorScheme.onPrimary,
                                   focusedBorderColor:
-                                      Theme.of(context).colorScheme.primary,
+                                      Theme.of(context).colorScheme.onPrimary,
                                   validator: Validators.validatePassword,
                                 ),
                                 Align(
@@ -191,7 +230,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     ),
                                   ),
                                 ),
-                                SizedBox(height: isSmallScreen ? 16 : 20),
+                                SizedBox(height: isSmallScreen ? 12 : 15),
                                 CustomButton(
                                   label: authState.isLoggingIn
                                       ? 'Signing in...'
@@ -219,27 +258,45 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           ),
                         ),
-                      ),
 
-                      // Bottom spacer keeps middle vertically centered
-                      const Spacer(),
+                        // Bottom spacer keeps middle vertically centered
+                        const Spacer(),
 
-                      // Optional small footer text (still inside SafeArea)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
-                        child: Text(
-                          "Already have an account? Sign in",
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodySmall,
+                        // Optional small footer text (still inside SafeArea)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 30.0),
+                          child: Text(
+                            "Already have an account? Sign in",
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
+              );
+            },
+          ),
+
+          // Back button positioned at top-left
+          Positioned(
+            top: 0,
+            left: 0,
+            child: SafeArea(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                child: BackButtonCircle(
+                  iconSize: 18,
+                  borderColor: Theme.of(context).colorScheme.onPrimary,
+                  iconColor: Theme.of(context).colorScheme.onPrimary,
+                  onTap: () => context.pop(),
+                ),
               ),
-            );
-          },
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:petmatch/core/router/auth_routes.dart';
 import 'package:petmatch/core/router/home_routes.dart';
+import 'package:petmatch/core/router/onboarding_routes.dart';
 import 'package:petmatch/get_started_screen.dart';
 import 'package:petmatch/splash_screen.dart';
 
@@ -20,7 +21,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const GetStartedScreen(),
       ),
       ...homeRoutes,
-      ...authRoutes
+      ...authRoutes,
+      ...onboardingRoutes,
     ],
   );
 });

@@ -27,6 +27,7 @@ mixin _$UserAuthState {
   bool get isLoggingIn => throw _privateConstructorUsedError;
   bool get isRegistering => throw _privateConstructorUsedError;
   bool get isRequestingChange => throw _privateConstructorUsedError;
+  bool get onboardingComplete => throw _privateConstructorUsedError;
 
   /// Create a copy of UserAuthState
   /// with the given fields replaced by the non-null parameter values.
@@ -52,7 +53,8 @@ abstract class $UserAuthStateCopyWith<$Res> {
       bool isAuthenticated,
       bool isLoggingIn,
       bool isRegistering,
-      bool isRequestingChange});
+      bool isRequestingChange,
+      bool onboardingComplete});
 }
 
 /// @nodoc
@@ -81,6 +83,7 @@ class _$UserAuthStateCopyWithImpl<$Res, $Val extends UserAuthState>
     Object? isLoggingIn = null,
     Object? isRegistering = null,
     Object? isRequestingChange = null,
+    Object? onboardingComplete = null,
   }) {
     return _then(_value.copyWith(
       userProfile: freezed == userProfile
@@ -127,6 +130,10 @@ class _$UserAuthStateCopyWithImpl<$Res, $Val extends UserAuthState>
           ? _value.isRequestingChange
           : isRequestingChange // ignore: cast_nullable_to_non_nullable
               as bool,
+      onboardingComplete: null == onboardingComplete
+          ? _value.onboardingComplete
+          : onboardingComplete // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -150,7 +157,8 @@ abstract class _$$UserAuthStateImplCopyWith<$Res>
       bool isAuthenticated,
       bool isLoggingIn,
       bool isRegistering,
-      bool isRequestingChange});
+      bool isRequestingChange,
+      bool onboardingComplete});
 }
 
 /// @nodoc
@@ -177,6 +185,7 @@ class __$$UserAuthStateImplCopyWithImpl<$Res>
     Object? isLoggingIn = null,
     Object? isRegistering = null,
     Object? isRequestingChange = null,
+    Object? onboardingComplete = null,
   }) {
     return _then(_$UserAuthStateImpl(
       userProfile: freezed == userProfile
@@ -223,6 +232,10 @@ class __$$UserAuthStateImplCopyWithImpl<$Res>
           ? _value.isRequestingChange
           : isRequestingChange // ignore: cast_nullable_to_non_nullable
               as bool,
+      onboardingComplete: null == onboardingComplete
+          ? _value.onboardingComplete
+          : onboardingComplete // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -241,7 +254,8 @@ class _$UserAuthStateImpl implements _UserAuthState {
       this.isAuthenticated = false,
       this.isLoggingIn = false,
       this.isRegistering = false,
-      this.isRequestingChange = false});
+      this.isRequestingChange = false,
+      this.onboardingComplete = false});
 
   @override
   final AppUser? userProfile;
@@ -269,10 +283,13 @@ class _$UserAuthStateImpl implements _UserAuthState {
   @override
   @JsonKey()
   final bool isRequestingChange;
+  @override
+  @JsonKey()
+  final bool onboardingComplete;
 
   @override
   String toString() {
-    return 'UserAuthState(userProfile: $userProfile, userId: $userId, userName: $userName, userEmail: $userEmail, userPassword: $userPassword, failedAttempts: $failedAttempts, lockoutTime: $lockoutTime, isAuthenticated: $isAuthenticated, isLoggingIn: $isLoggingIn, isRegistering: $isRegistering, isRequestingChange: $isRequestingChange)';
+    return 'UserAuthState(userProfile: $userProfile, userId: $userId, userName: $userName, userEmail: $userEmail, userPassword: $userPassword, failedAttempts: $failedAttempts, lockoutTime: $lockoutTime, isAuthenticated: $isAuthenticated, isLoggingIn: $isLoggingIn, isRegistering: $isRegistering, isRequestingChange: $isRequestingChange, onboardingComplete: $onboardingComplete)';
   }
 
   @override
@@ -300,7 +317,9 @@ class _$UserAuthStateImpl implements _UserAuthState {
             (identical(other.isRegistering, isRegistering) ||
                 other.isRegistering == isRegistering) &&
             (identical(other.isRequestingChange, isRequestingChange) ||
-                other.isRequestingChange == isRequestingChange));
+                other.isRequestingChange == isRequestingChange) &&
+            (identical(other.onboardingComplete, onboardingComplete) ||
+                other.onboardingComplete == onboardingComplete));
   }
 
   @override
@@ -316,7 +335,8 @@ class _$UserAuthStateImpl implements _UserAuthState {
       isAuthenticated,
       isLoggingIn,
       isRegistering,
-      isRequestingChange);
+      isRequestingChange,
+      onboardingComplete);
 
   /// Create a copy of UserAuthState
   /// with the given fields replaced by the non-null parameter values.
@@ -339,7 +359,8 @@ abstract class _UserAuthState implements UserAuthState {
       final bool isAuthenticated,
       final bool isLoggingIn,
       final bool isRegistering,
-      final bool isRequestingChange}) = _$UserAuthStateImpl;
+      final bool isRequestingChange,
+      final bool onboardingComplete}) = _$UserAuthStateImpl;
 
   @override
   AppUser? get userProfile;
@@ -363,6 +384,8 @@ abstract class _UserAuthState implements UserAuthState {
   bool get isRegistering;
   @override
   bool get isRequestingChange;
+  @override
+  bool get onboardingComplete;
 
   /// Create a copy of UserAuthState
   /// with the given fields replaced by the non-null parameter values.
