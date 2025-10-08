@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:petmatch/features/home/presentation/landing_dashboard.dart';
+import 'package:petmatch/features/home/presentation/match_dashboard.dart';
 import 'package:petmatch/features/home/presentation/profile_dashboard.dart';
 import 'package:petmatch/features/pet_profile/screens/pet_activity_information.dart';
 import 'package:petmatch/features/pet_profile/screens/pet_behavior_information.dart';
@@ -33,6 +34,13 @@ final homeRoutes = [
         name: 'profile-screen',
         builder: (context, state) => const ProfileDashboard(),
       ),
+      GoRoute(
+        path: '/match-dashboard',
+        name: 'match-dashboard',
+        builder: (context, state) => const MatchDashboard(),
+      ),
+
+      // no use routes
       GoRoute(
         path: '/profile-setup',
         name: 'profile-setup',

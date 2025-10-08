@@ -22,41 +22,26 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
   late PageController _pageController;
   late int _currentIndex;
   final Map<int, PageController> _imagePageControllers = {};
-  final Map<int, int> _currentImageIndexes = {};
+  final Map<int, int> _currentImageIndices = {};
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
+    for (int i = 0; i < widget.pets.length; i++) {
+      _imagePageControllers[i] = PageController();
+      _currentImageIndices[i] = 0;
+    }
   }
 
   @override
   void dispose() {
     _pageController.dispose();
-    // Dispose all image page controllers
     for (var controller in _imagePageControllers.values) {
       controller.dispose();
     }
     super.dispose();
-  }
-
-  PageController _getImagePageController(int petIndex) {
-    if (!_imagePageControllers.containsKey(petIndex)) {
-      _imagePageControllers[petIndex] = PageController();
-      _currentImageIndexes[petIndex] = 0;
-    }
-    return _imagePageControllers[petIndex]!;
-  }
-
-  int _getCurrentImageIndex(int petIndex) {
-    return _currentImageIndexes[petIndex] ?? 0;
-  }
-
-  void _setCurrentImageIndex(int petIndex, int imageIndex) {
-    setState(() {
-      _currentImageIndexes[petIndex] = imageIndex;
-    });
   }
 
   @override
@@ -77,13 +62,10 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
                   onPageChanged: (index) {
                     setState(() {
                       _currentIndex = index;
-                      // Reset image index when switching pets
-                      _setCurrentImageIndex(index, 0);
+                      _currentImageIndices[index] = 0;
                     });
-                    // Reset image carousel to first image
-                    final imageController = _imagePageControllers[index];
-                    if (imageController != null && imageController.hasClients) {
-                      imageController.jumpToPage(0);
+                    if (_imagePageControllers[index]?.hasClients ?? false) {
+                      _imagePageControllers[index]!.jumpToPage(0);
                     }
                   },
                   itemCount: widget.pets.length,
@@ -99,14 +81,13 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
   }
 
   Widget _buildPetDetails(Pet pet, int petIndex) {
-    // Combine thumbnail and full image URLs, ensuring thumbnail is first if it exists
     final imageUrls = [
       if (pet.thumbnailUrl != null) pet.thumbnailUrl!,
       ...pet.fullImageUrls,
     ];
 
-    final imagePageController = _getImagePageController(petIndex);
-    final currentImageIndex = _getCurrentImageIndex(petIndex);
+    final imagePageController = _imagePageControllers[petIndex]!;
+    final currentImageIndex = _currentImageIndices[petIndex] ?? 0;
 
     return SingleChildScrollView(
       child: Column(
@@ -145,7 +126,9 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
                     : PageView.builder(
                         controller: imagePageController,
                         onPageChanged: (index) {
-                          _setCurrentImageIndex(petIndex, index);
+                          setState(() {
+                            _currentImageIndices[petIndex] = index;
+                          });
                         },
                         itemCount: imageUrls.length,
                         itemBuilder: (context, index) {
