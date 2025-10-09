@@ -81,10 +81,7 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
   }
 
   Widget _buildPetDetails(Pet pet, int petIndex) {
-    final imageUrls = [
-      if (pet.thumbnailUrl != null) pet.thumbnailUrl!,
-      ...pet.fullImageUrls,
-    ];
+    final imageUrls = pet.fullImageUrls;
 
     final imagePageController = _imagePageControllers[petIndex]!;
     final currentImageIndex = _currentImageIndices[petIndex] ?? 0;
@@ -722,7 +719,7 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
                       ),
                     ),
                     FractionallySizedBox(
-                      widthFactor: level / 10,
+                      widthFactor: level / 5,
                       child: Container(
                         height: 8,
                         decoration: BoxDecoration(
@@ -744,7 +741,7 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '$level/10',
+                  '$level/5',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,

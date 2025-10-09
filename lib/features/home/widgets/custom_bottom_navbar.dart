@@ -32,8 +32,7 @@ class CustomBottomNav extends StatelessWidget {
               _buildNavItem(context, Icons.home, 0, '/home'),
               _buildNavItem(context, Icons.chat_bubble_outline, 1,
                   '/home/match-dashboard'),
-              _buildNavItem(
-                  context, Icons.favorite_border, 2, '/home/device-screen'),
+              _buildNavItem(context, Icons.favorite_border, 2, '/home/add-pet'),
               _buildNavItem(context, Icons.calendar_today_outlined, 3,
                   '/home/notifications'),
               _buildNavItem(

@@ -18,6 +18,7 @@ class TextFieldWidget extends StatefulWidget {
   final Color? focusedBorderColor;
   final Color? iconColor;
   final double borderRadius;
+  final int? maxLines;
 
   const TextFieldWidget({
     super.key,
@@ -37,6 +38,7 @@ class TextFieldWidget extends StatefulWidget {
     this.focusedBorderColor,
     this.iconColor,
     this.borderRadius = 15.0,
+    this.maxLines,
   });
 
   @override
@@ -98,6 +100,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
               )
             : null,
       ),
+      maxLines: widget.maxLines ?? 1,
       style: TextStyle(fontSize: widget.fontSize),
       validator: widget.validator,
     );

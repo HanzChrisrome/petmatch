@@ -1,9 +1,11 @@
 // ignore_for_file: avoid_print
 
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:petmatch/core/model/pet_model.dart';
 import 'package:petmatch/features/home/provider/pets_provider/pet_state.dart';
 import 'package:petmatch/core/repository/pet_repository.dart';
+import 'package:uuid/uuid.dart';
 
 class PetNotifier extends Notifier<PetState> {
   final PetRepository _repository;
@@ -36,6 +38,96 @@ class PetNotifier extends Notifier<PetState> {
         errorMessage: 'Failed to fetch pets: $e',
       );
       print('❌ Error fetching pets: $e');
+    }
+  }
+
+  Future<void> savePet({
+    required String petName,
+    required String species,
+    required String breed,
+    required int age,
+    required String gender,
+    required String size,
+    required String status,
+    required String description,
+    required File? thumbnailImage,
+    required List<File> selectedImages,
+    // Health Information
+    required String? isVaccinationUpToDate,
+    required String? isSpayedNeutered,
+    required String healthNotes,
+    required String? hasSpecialNeeds,
+    required String specialNeedsDescription,
+    required int? groomingNeeds,
+    // Behavior Information
+    required String? goodWithChildren,
+    required String? goodWithDogs,
+    required String? goodWithCats,
+    required String? houseTrained,
+    required String behavioralNotes,
+    // Activity Information
+    required double energyLevel,
+    required double playfulness,
+    required String? dailyExerciseNeeds,
+    // Temperament Information
+    required List<String> selectedTraits,
+    required double affectionLevel,
+    required double independence,
+    required double adaptability,
+    required String? trainingLevel,
+  }) async {
+    try {
+      state = state.copyWith(isLoading: true, errorMessage: null);
+      print('💾 Saving new pet: $petName');
+
+      const Uuid uuid = Uuid();
+      final petId = uuid.v4();
+
+      await _repository.savePet(
+        petId: petId,
+        petName: petName,
+        species: species,
+        breed: breed,
+        age: age,
+        gender: gender,
+        size: size,
+        status: status,
+        description: description,
+        thumbnailImage: thumbnailImage,
+        selectedImages: selectedImages,
+        isVaccinationUpToDate: isVaccinationUpToDate,
+        isSpayedNeutered: isSpayedNeutered,
+        healthNotes: healthNotes,
+        hasSpecialNeeds: hasSpecialNeeds,
+        specialNeedsDescription: specialNeedsDescription,
+        groomingNeeds: groomingNeeds,
+        goodWithChildren: goodWithChildren,
+        goodWithDogs: goodWithDogs,
+        goodWithCats: goodWithCats,
+        houseTrained: houseTrained,
+        behavioralNotes: behavioralNotes,
+        energyLevel: energyLevel,
+        playfulness: playfulness,
+        dailyExerciseNeeds: dailyExerciseNeeds,
+        selectedTraits: selectedTraits,
+        affectionLevel: affectionLevel,
+        independence: independence,
+        adaptability: adaptability,
+        trainingLevel: trainingLevel,
+      );
+
+      print('✅ Pet saved successfully!');
+      print('🔄 Refreshing pet list...');
+
+      await fetchAllPets();
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Failed to save pet: $e',
+      );
+      print('❌ Error saving pet: $e');
+      rethrow;
     }
   }
 

@@ -8,6 +8,8 @@ class ThemedTextField extends StatelessWidget {
   final bool isPasswordField;
   final String? Function(String?)? validator;
   final FocusNode? focusNode;
+  final int? maxLines;
+  final TextInputType? keyboardType;
 
   const ThemedTextField({
     super.key,
@@ -17,22 +19,41 @@ class ThemedTextField extends StatelessWidget {
     this.isPasswordField = false,
     this.validator,
     this.focusNode,
+    this.maxLines,
+    this.keyboardType,
   });
 
   @override
   Widget build(BuildContext context) {
+    // If maxLines is provided, we need to use TextFormField directly
+    if (maxLines != null && maxLines! > 1) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: TextFieldWidget(
+          label: label,
+          controller: controller,
+          prefixIcon: prefixIcon,
+          iconColor: Theme.of(context).colorScheme.onPrimary,
+          fillColor: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+          borderColor: Theme.of(context).colorScheme.onPrimary.withOpacity(0.2),
+          filled: true,
+          focusedBorderColor: Theme.of(context).colorScheme.onPrimary,
+          validator: validator,
+        ),
+      );
+    }
+
     return TextFieldWidget(
       label: label,
       controller: controller,
       prefixIcon: prefixIcon,
-      isPasswordField: isPasswordField,
-      validator: validator,
-      focusNode: focusNode,
-      filled: true,
-      fillColor: Theme.of(context).colorScheme.primary.withOpacity(0.05),
-      borderColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-      focusedBorderColor: Theme.of(context).colorScheme.primary,
       iconColor: Theme.of(context).colorScheme.onPrimary,
+      fillColor: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+      borderColor: Theme.of(context).colorScheme.onPrimary.withOpacity(0.2),
+      filled: true,
+      focusedBorderColor: Theme.of(context).colorScheme.onPrimary,
+      validator: validator,
+      maxLines: maxLines,
     );
   }
 }

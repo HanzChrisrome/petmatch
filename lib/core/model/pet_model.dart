@@ -128,7 +128,7 @@ class Pet {
       species: json['species'] as String,
       breed: json['breed'] as String?,
       gender: json['gender'] as String?,
-      age: json['age'] as int?,
+      age: (json['age'] as num?)?.toInt(),
       size: json['size'] as String?,
       description: json['description'] as String?,
       thumbnailPath: json['thumbnail_path'] as String?,
@@ -147,16 +147,17 @@ class Pet {
       vaccinations: healthNotes?['vaccinations'] as String?,
       spayedNeutered: healthNotes?['spayed_neutered'] as String?,
       specialNeeds: healthNotes?['special_needs'] as String?,
-      groomingNeeds: healthNotes?['grooming_needs'] as int?,
+      groomingNeeds: (temperament?['grooming_needs'] as num?)?.toInt(),
       // Activity & Personality from activity_level
-      energyLevel: activityLevel?['energy_level'] as int?,
-      playfulness: activityLevel?['playfulness'] as int?,
+      energyLevel: (activityLevel?['energy_level'] as num?)?.toInt(),
+      playfulness: (activityLevel?['playfulness'] as num?)?.toInt(),
       dailyExercise: activityLevel?['daily_exercise'] as String?,
       // Temperament from temperament
-      affectionLevel: temperament?['affection_level'] as int?,
-      independence: temperament?['independence'] as int?,
-      adaptability: temperament?['adaptability'] as int?,
-      trainingDifficulty: temperament?['training_difficulty'] as int?,
+      affectionLevel: (temperament?['affection_level'] as num?)?.toInt(),
+      independence: (temperament?['independence'] as num?)?.toInt(),
+      adaptability: (temperament?['adaptability'] as num?)?.toInt(),
+      trainingDifficulty:
+          (temperament?['training_difficulty'] as num?)?.toInt(),
       temperamentTraits: traits,
     );
   }
