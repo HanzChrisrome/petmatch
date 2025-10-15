@@ -262,13 +262,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         // Bottom spacer keeps middle vertically centered
                         const Spacer(),
 
-                        // Optional small footer text (still inside SafeArea)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 30.0),
-                          child: Text(
-                            "Already have an account? Sign in",
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyMedium,
+                        GestureDetector(
+                          onTap: () {
+                            context.go('/register');
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 30.0),
+                            child: Text(
+                              "Don't have an account? Sign up",
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
                           ),
                         ),
                       ],
@@ -278,8 +282,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               );
             },
           ),
-
-          // Back button positioned at top-left
           Positioned(
             top: 0,
             left: 0,

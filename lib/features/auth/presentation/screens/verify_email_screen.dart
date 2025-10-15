@@ -59,7 +59,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                       child: Icon(
                         Icons.mark_email_unread_rounded,
                         size: 100,
-                        color: Theme.of(context).colorScheme.primary,
+                        color: Theme.of(context).colorScheme.onPrimary,
                       ),
                     );
                   },
@@ -70,7 +70,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
 
               Text(
                 'Verify Your Email',
-                style: GoogleFonts.newsreader(
+                style: GoogleFonts.poppins(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.onSurface,
@@ -96,38 +96,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                 ),
               ),
 
-              const SizedBox(height: 8),
-
-              // Email Display
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primaryContainer
-                      .withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color:
-                        Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                    width: 1,
-                  ),
-                ),
-                child: Text(
-                  widget.email,
-                  style: GoogleFonts.spaceMono(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-
-              const SizedBox(height: 24),
+              const SizedBox(height: 10),
 
               // Instructions
               Padding(
@@ -148,21 +117,21 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
 
               const SizedBox(height: 40),
 
-              // Check Verification Button
               CustomButton(
                 label: _isChecking ? 'Checking...' : 'I\'ve Verified My Email',
                 onPressed: _isChecking ? null : _checkEmailVerification,
-                backgroundColor: Theme.of(context).colorScheme.primary,
+                backgroundColor: Theme.of(context).colorScheme.onPrimary,
               ),
 
               const SizedBox(height: 16),
 
-              // Resend Email Button
               CustomButton(
                 label:
                     _isResending ? 'Sending...' : 'Resend Verification Email',
                 onPressed: _isResending ? null : _resendVerificationEmail,
                 backgroundColor: Theme.of(context).colorScheme.primary,
+                textColor: Theme.of(context).colorScheme.onPrimary,
+                borderColor: Theme.of(context).colorScheme.onPrimary,
               ),
 
               const SizedBox(height: 32),
@@ -187,7 +156,6 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
 
               const SizedBox(height: 24),
 
-              // Troubleshooting Tips
               _buildTipCard(
                 context,
                 icon: Icons.inbox_rounded,
@@ -259,7 +227,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
         children: [
           Icon(
             icon,
-            color: Theme.of(context).colorScheme.primary,
+            color: Theme.of(context).colorScheme.onPrimary,
             size: 24,
           ),
           const SizedBox(width: 16),

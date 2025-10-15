@@ -19,15 +19,15 @@ class Pet {
   final DateTime? createdAt;
 
   // Behavior traits
-  final String? goodWithChildren;
-  final String? goodWithDogs;
-  final String? goodWithCats;
-  final String? houseTrained;
+  final bool? goodWithChildren;
+  final bool? goodWithDogs;
+  final bool? goodWithCats;
+  final bool? houseTrained;
 
   // Health information
-  final String? vaccinations;
-  final String? spayedNeutered;
-  final String? specialNeeds;
+  final bool? vaccinations;
+  final bool? spayedNeutered;
+  final bool? specialNeeds;
   final int? groomingNeeds; // 1-5 scale
 
   // Activity & Personality
@@ -139,14 +139,14 @@ class Pet {
           ? DateTime.parse(json['created_at'] as String)
           : null,
       // Behavior traits from behavior_tags
-      goodWithChildren: behaviorTags?['good_with_children'] as String?,
-      goodWithDogs: behaviorTags?['good_with_dogs'] as String?,
-      goodWithCats: behaviorTags?['good_with_cats'] as String?,
-      houseTrained: behaviorTags?['house_trained'] as String?,
+      goodWithChildren: behaviorTags?['good_with_children'] as bool?,
+      goodWithDogs: behaviorTags?['good_with_dogs'] as bool?,
+      goodWithCats: behaviorTags?['good_with_cats'] as bool?,
+      houseTrained: behaviorTags?['house_trained'] as bool?,
       // Health information from health_notes
-      vaccinations: healthNotes?['vaccinations'] as String?,
-      spayedNeutered: healthNotes?['spayed_neutered'] as String?,
-      specialNeeds: healthNotes?['special_needs'] as String?,
+      vaccinations: healthNotes?['vaccinations'] as bool?,
+      spayedNeutered: healthNotes?['spayed_neutered'] as bool?,
+      specialNeeds: healthNotes?['special_needs'] as bool?,
       groomingNeeds: (temperament?['grooming_needs'] as num?)?.toInt(),
       // Activity & Personality from activity_level
       energyLevel: (activityLevel?['energy_level'] as num?)?.toInt(),
@@ -165,7 +165,21 @@ class Pet {
   List<String> get fullImageUrls {
     const bucketName = 'pets';
 
-    return imageUrls
+    List<String> imagesToUse = [];
+
+    // Always add the thumbnail first if it exists
+    if (thumbnailPath != null && thumbnailPath!.isNotEmpty) {
+      imagesToUse.add(thumbnailPath!);
+    }
+
+    // Add other images from the database, but skip if it's the same as thumbnail
+    for (var imageUrl in imageUrls) {
+      if (imageUrl != thumbnailPath) {
+        imagesToUse.add(imageUrl);
+      }
+    }
+
+    return imagesToUse
         .map((filename) =>
             supabase.storage.from(bucketName).getPublicUrl('$id/$filename'))
         .toList();

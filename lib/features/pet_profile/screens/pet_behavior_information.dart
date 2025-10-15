@@ -20,10 +20,10 @@ class _PetBehaviorInformationScreenState
       TextEditingController();
 
   // Selected values
-  String? _goodWithChildren;
-  String? _goodWithDogs;
-  String? _goodWithCats;
-  String? _houseTrained;
+  bool? _goodWithChildren;
+  bool? _goodWithDogs;
+  bool? _goodWithCats;
+  bool? _houseTrained;
 
   @override
   void dispose() {
@@ -124,7 +124,7 @@ class _PetBehaviorInformationScreenState
                 // Good with Children
                 _buildFieldLabel("Good with children?", "👶", isSmallScreen),
                 const SizedBox(height: 12),
-                _buildThreeOptionToggle(
+                _buildYesNoToggle(
                   selected: _goodWithChildren,
                   onChanged: (value) {
                     setState(() {
@@ -139,7 +139,7 @@ class _PetBehaviorInformationScreenState
                 // Good with Other Dogs
                 _buildFieldLabel("Good with other dogs?", "🐕", isSmallScreen),
                 const SizedBox(height: 12),
-                _buildThreeOptionToggle(
+                _buildYesNoToggle(
                   selected: _goodWithDogs,
                   onChanged: (value) {
                     setState(() {
@@ -154,7 +154,7 @@ class _PetBehaviorInformationScreenState
                 // Good with Cats
                 _buildFieldLabel("Good with cats?", "🐈", isSmallScreen),
                 const SizedBox(height: 12),
-                _buildThreeOptionToggle(
+                _buildYesNoToggle(
                   selected: _goodWithCats,
                   onChanged: (value) {
                     setState(() {
@@ -169,7 +169,15 @@ class _PetBehaviorInformationScreenState
                 // House-trained
                 _buildFieldLabel("House-trained?", "🏠", isSmallScreen),
                 const SizedBox(height: 12),
-                _buildHouseTrainedToggle(isSmallScreen),
+                _buildYesNoToggle(
+                  selected: _houseTrained,
+                  onChanged: (value) {
+                    setState(() {
+                      _houseTrained = value;
+                    });
+                  },
+                  isSmall: isSmallScreen,
+                ),
 
                 SizedBox(height: isSmallScreen ? 24 : 28),
 
@@ -292,29 +300,23 @@ class _PetBehaviorInformationScreenState
     );
   }
 
-  Widget _buildThreeOptionToggle({
-    required String? selected,
-    required Function(String) onChanged,
+  Widget _buildYesNoToggle({
+    required bool? selected,
+    required Function(bool) onChanged,
     required bool isSmall,
   }) {
     final options = [
       {
         'label': 'Yes',
         'emoji': '✅',
-        'value': 'yes',
+        'value': true,
         'color': const Color(0xFF66BB6A)
       },
       {
         'label': 'No',
         'emoji': '❌',
-        'value': 'no',
+        'value': false,
         'color': const Color(0xFFEF5350)
-      },
-      {
-        'label': 'Unknown',
-        'emoji': '❓',
-        'value': 'unknown',
-        'color': const Color(0xFFBDBDBD)
       },
     ];
 
@@ -323,7 +325,7 @@ class _PetBehaviorInformationScreenState
         final isSelected = selected == option['value'];
         return Expanded(
           child: GestureDetector(
-            onTap: () => onChanged(option['value'] as String),
+            onTap: () => onChanged(option['value'] as bool),
             child: Container(
               margin: const EdgeInsets.only(right: 8),
               padding: EdgeInsets.symmetric(
@@ -373,88 +375,6 @@ class _PetBehaviorInformationScreenState
     );
   }
 
-  Widget _buildHouseTrainedToggle(bool isSmall) {
-    final options = [
-      {
-        'label': 'Yes',
-        'emoji': '✅',
-        'value': 'yes',
-        'color': const Color(0xFF66BB6A)
-      },
-      {
-        'label': 'No',
-        'emoji': '❌',
-        'value': 'no',
-        'color': const Color(0xFFEF5350)
-      },
-      {
-        'label': 'In Progress',
-        'emoji': '🔄',
-        'value': 'in_progress',
-        'color': const Color(0xFF42A5F5)
-      },
-    ];
-
-    return Row(
-      children: options.map((option) {
-        final isSelected = _houseTrained == option['value'];
-        return Expanded(
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                _houseTrained = option['value'] as String;
-              });
-            },
-            child: Container(
-              margin: const EdgeInsets.only(right: 8),
-              padding: EdgeInsets.symmetric(
-                vertical: isSmall ? 12 : 14,
-              ),
-              decoration: BoxDecoration(
-                color: isSelected ? (option['color'] as Color) : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isSelected
-                      ? (option['color'] as Color)
-                      : Colors.grey[300]!,
-                  width: isSelected ? 2 : 1.5,
-                ),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: (option['color'] as Color).withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                    : [],
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    option['emoji'] as String,
-                    style: TextStyle(fontSize: isSmall ? 20 : 22),
-                  ),
-                  SizedBox(height: isSmall ? 4 : 6),
-                  Text(
-                    option['label'] as String,
-                    style: TextStyle(
-                      fontSize: isSmall ? 11 : 12,
-                      fontWeight:
-                          isSelected ? FontWeight.w700 : FontWeight.w600,
-                      color: isSelected ? Colors.white : Colors.black87,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
   void _saveBehaviorInfo() {
     final behaviorData = {
       'good_with_children': _goodWithChildren,
@@ -464,7 +384,6 @@ class _PetBehaviorInformationScreenState
       'behavioral_notes': _behavioralNotesController.text,
     };
 
-    // TODO: Save to database
     print('Behavior Data: $behaviorData');
 
     ScaffoldMessenger.of(context).showSnackBar(

@@ -6,7 +6,9 @@ import 'package:petmatch/features/auth/provider/auth_provider.dart';
 import 'package:petmatch/features/home/provider/pets_provider/pet_provider.dart';
 import 'package:petmatch/features/home/widgets/custom_bottom_navbar.dart';
 import 'package:petmatch/features/home/widgets/pet_details_modal.dart';
+import 'package:petmatch/features/home/provider/favorites_provider.dart';
 import 'package:petmatch/core/model/pet_model.dart';
+import 'package:petmatch/widgets/info_banner.dart';
 
 class LandingDashboard extends ConsumerStatefulWidget {
   const LandingDashboard({super.key});
@@ -17,6 +19,7 @@ class LandingDashboard extends ConsumerStatefulWidget {
 
 class _LandingDashboardState extends ConsumerState<LandingDashboard> {
   int _selectedCategoryIndex = 0;
+  final ScrollController _scrollController = ScrollController();
 
   // Colors for pet cards
   final List<Color> _cardColors = [
@@ -27,12 +30,44 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
     const Color(0xFFF3E5F5),
   ];
 
+  final List<String> carouselImages = [
+    'assets/carousel/first carousel.png',
+    // Add more image paths
+  ];
+
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(petsProvider.notifier).fetchAllPets();
+      ref.read(petsProvider.notifier).fetchInitialPets();
+      ref.read(favoritesProvider.notifier).fetchFavorites();
     });
+
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+
+    const threshold = 300;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+
+    final notifier = ref.read(petsProvider.notifier);
+    final state = ref.read(petsProvider);
+
+    if (maxScroll - currentScroll <= threshold) {
+      if (!state.isFetchingMore && state.hasMore && !state.isLoading) {
+        notifier.fetchMorePets();
+      }
+    }
   }
 
   @override
@@ -41,253 +76,155 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
     final userName =
         authState.userName ?? authState.userEmail?.split('@').first ?? 'User';
 
-    // Watch pets state
     final petsState = ref.watch(petsProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            _buildHeader(userName),
-            Expanded(
-              child: petsState.isLoading
-                  ? Container(
-                      color: Colors.white,
-                      child: Center(
-                        child: SizedBox(
-                          width: 320,
-                          height: 320,
-                          child: Lottie.asset(
-                            'assets/lottie/Catloading.json',
-                            fit: BoxFit.contain,
-                            repeat: true,
-                          ),
-                        ),
-                      ),
-                    )
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
+        child: petsState.isLoading
+            ? Center(
+                child: SizedBox(
+                  width: 320,
+                  height: 320,
+                  child: Lottie.asset(
+                    'assets/lottie/Catloading.json',
+                    fit: BoxFit.contain,
+                    repeat: true,
+                  ),
+                ),
+              )
+            : RefreshIndicator(
+                onRefresh: () async {
+                  await ref.read(petsProvider.notifier).refresh();
+                },
+                child: ListView(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    _buildHeader(userName),
+                    const SizedBox(height: 20),
+                    if (petsState.errorMessage != null)
+                      _buildErrorSection(petsState.errorMessage!)
+                    else
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (petsState.errorMessage != null)
-                            Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(32.0),
-                                child: Column(
-                                  children: [
-                                    Icon(Icons.error_outline,
-                                        size: 48, color: Colors.red[300]),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      'Error loading pets',
-                                      style: TextStyle(color: Colors.red[300]),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      petsState.errorMessage!,
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey[600]),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    TextButton(
-                                      onPressed: () {
-                                        ref
-                                            .read(petsProvider.notifier)
-                                            .refresh();
-                                      },
-                                      child: const Text('Retry'),
-                                    ),
-                                  ],
-                                ),
+                          _buildCarouselHeader(),
+                          const SizedBox(height: 10),
+                          _buildCategoryCards(),
+                          const InfoBanner(
+                              message: 'Tap a pet card to view more details'),
+                          _buildPetsGrid(petsState.filteredPets ?? []),
+                          if (petsState.isFetchingMore)
+                            const Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Center(
+                                child: CircularProgressIndicator(),
                               ),
-                            )
-                          else
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildCategoryCards(),
-                                _buildPetsGrid(petsState.pets ?? []),
-                              ],
                             ),
-                          const SizedBox(height: 80),
                         ],
                       ),
-                    ),
-            ),
-          ],
-        ),
+                    const SizedBox(height: 80),
+                  ],
+                ),
+              ),
       ),
       bottomNavigationBar: const CustomBottomNav(currentIndex: 0),
     );
   }
 
-  Widget _buildHeader(String userName) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        children: [
-          // User Avatar
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: Colors.grey[300],
-            child: const Icon(Icons.person, color: Colors.white),
-          ),
-          const SizedBox(width: 12),
-
-          // Welcome Text
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Welcome back 👋',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                Text(
-                  userName,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-              ],
+  Widget _buildCarouselHeader() {
+    return SizedBox(
+      height: 180,
+      child: PageView.builder(
+        itemCount: carouselImages.length,
+        itemBuilder: (context, index) {
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.asset(
+              carouselImages[index],
+              fit: BoxFit.cover,
+              width: double.infinity,
             ),
-          ),
-
-          // Action Icons
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.search, size: 22),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.notifications_outlined, size: 22),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildPromoBanner() {
-    return Container(
-      width: double.infinity,
-      height: 140,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF8B4513).withOpacity(0.9),
-            const Color(0xFF654321),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  Widget _buildHeader(String userName) {
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 20,
+          backgroundColor: Colors.grey[300],
+          child: const Icon(Icons.person, color: Colors.white),
         ),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            left: 20,
-            top: 20,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  '40% Off on Pet',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Welcome back 👋',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+              Text(
+                userName,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
-                const Text(
-                  'Products',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.orange,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    'Shop',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            right: 0,
-            bottom: 0,
-            top: 0,
-            child: ClipRRect(
-              borderRadius:
-                  const BorderRadius.horizontal(right: Radius.circular(20)),
-              child: Image.asset(
-                'assets/banner_pet.jpg',
-                height: 140,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: 120,
-                    color: Colors.brown[300],
-                    child:
-                        const Icon(Icons.pets, size: 50, color: Colors.white),
-                  );
-                },
               ),
-            ),
+            ],
           ),
-        ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorSection(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          children: [
+            Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+            const SizedBox(height: 16),
+            Text('Error loading pets',
+                style: TextStyle(color: Colors.red[300])),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () {
+                ref.read(petsProvider.notifier).refresh();
+              },
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildCategoryCards() {
     final categories = [
-      {
-        'title': 'Cat',
-        'icon': Icons.pets,
-        'index': 1,
-      },
-      {
-        'title': 'Dog',
-        'icon': Icons.pets,
-        'index': 3,
-      },
+      {'title': 'All', 'icon': Icons.all_inclusive, 'index': 0},
+      {'title': 'Cat', 'icon': Icons.pets, 'index': 1},
+      {'title': 'Dog', 'icon': Icons.pets, 'index': 2},
     ];
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: categories.map((category) {
@@ -297,9 +234,9 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
               setState(() {
                 _selectedCategoryIndex = category['index'] as int;
               });
-              ref
-                  .read(petsProvider.notifier)
-                  .filterByCategory(category['title'] as String);
+              final title = category['title'] as String;
+              ref.read(petsProvider.notifier).filterByCategory(
+                  title.toLowerCase() == 'all' ? 'all' : title);
             },
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -313,12 +250,14 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
               ),
               width: 64,
               height: 64,
-              child: Icon(
-                category['icon'] as IconData,
-                size: 36,
-                color: category['title'] == 'Cat'
-                    ? Colors.pink[400]
-                    : Colors.blue[400],
+              alignment: Alignment.center,
+              child: Text(
+                category['title'] == 'Cat'
+                    ? '🐱'
+                    : category['title'] == 'Dog'
+                        ? '🐶'
+                        : '🌟',
+                style: const TextStyle(fontSize: 32),
               ),
             ),
           );
@@ -336,10 +275,8 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
             children: [
               Icon(Icons.pets, size: 64, color: Colors.grey[300]),
               const SizedBox(height: 16),
-              Text(
-                'No pets found',
-                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-              ),
+              Text('No pets found',
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600])),
             ],
           ),
         ),
@@ -365,148 +302,165 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
   }
 
   Widget _buildPetCard(Pet pet, Color cardColor, int index, List<Pet> allPets) {
-    return GestureDetector(
-      onTap: () {
-        showPetDetailsModal(context, allPets, index);
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Pet Image from Supabase Storage
-            Expanded(
-              flex: 5,
-              child: ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(20)),
-                child: CachedNetworkImage(
-                  imageUrl: pet.thumbnailUrl ?? '',
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey[200],
-                    child: const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Colors.grey[200],
-                    child: const Center(
-                      child: Icon(Icons.pets, size: 64, color: Colors.grey),
-                    ),
-                  ),
-                ),
-              ),
+    return Consumer(
+      builder: (context, ref, _) {
+        final favoritesState = ref.watch(favoritesProvider);
+        final favoritesNotifier = ref.read(favoritesProvider.notifier);
+        final isFavorite = favoritesState.favoriteIds.contains(pet.id);
+        return GestureDetector(
+          onTap: () => showPetDetailsModal(context, allPets, index),
+          child: Container(
+            decoration: BoxDecoration(
+              color: cardColor,
+              borderRadius: BorderRadius.circular(20),
             ),
-
-            // Pet Info
-            Container(
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Pet Name
-                  Text(
-                    pet.name,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                  const SizedBox(height: 3),
-                  // Gender and Age Category
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 5,
+                  child: Stack(
                     children: [
-                      // Gender
-                      if (pet.gender != null)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              pet.gender?.toLowerCase() == 'male'
-                                  ? Icons.male
-                                  : Icons.female,
-                              size: 12,
-                              color: pet.gender?.toLowerCase() == 'male'
-                                  ? Colors.blue[700]
-                                  : Colors.pink[700],
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(20)),
+                        child: CachedNetworkImage(
+                          imageUrl: pet.thumbnailUrl ?? '',
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                                child: CircularProgressIndicator()),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: Icon(Icons.pets,
+                                  size: 64, color: Colors.grey),
                             ),
-                            const SizedBox(width: 2),
-                            Text(
-                              pet.gender!,
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: pet.gender?.toLowerCase() == 'male'
-                                    ? Colors.blue[700]
-                                    : Colors.pink[700],
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      // Age category
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: pet.ageCategory == 'Young'
-                              ? Colors.green[50]
-                              : Colors.orange[50],
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: pet.ageCategory == 'Young'
-                                ? Colors.green[300]!
-                                : Colors.orange[300]!,
-                            width: 1,
                           ),
                         ),
-                        child: Text(
-                          pet.ageCategory,
-                          style: TextStyle(
-                            fontSize: 9,
-                            color: pet.ageCategory == 'Young'
-                                ? Colors.green[700]
-                                : Colors.orange[700],
-                            fontWeight: FontWeight.w600,
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: GestureDetector(
+                          onTap: () async {
+                            if (isFavorite) {
+                              await favoritesNotifier.removeFavorite(
+                                  context, pet.id);
+                            } else {
+                              await favoritesNotifier.addFavorite(
+                                  context, pet.id);
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.08),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: Colors.red,
+                              size: 22,
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        pet.name,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                      const SizedBox(height: 3),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          if (pet.gender != null)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  pet.gender?.toLowerCase() == 'male'
+                                      ? Icons.male
+                                      : Icons.female,
+                                  size: 12,
+                                  color: pet.gender?.toLowerCase() == 'male'
+                                      ? Colors.blue[700]
+                                      : Colors.pink[700],
+                                ),
+                                const SizedBox(width: 2),
+                                Text(
+                                  pet.gender!,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: pet.gender?.toLowerCase() == 'male'
+                                        ? Colors.blue[700]
+                                        : Colors.pink[700],
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: pet.ageCategory == 'Young'
+                                  ? Colors.green[50]
+                                  : Colors.orange[50],
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: pet.ageCategory == 'Young'
+                                    ? Colors.green[300]!
+                                    : Colors.orange[300]!,
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              pet.ageCategory,
+                              style: TextStyle(
+                                fontSize: 9,
+                                color: pet.ageCategory == 'Young'
+                                    ? Colors.green[700]
+                                    : Colors.orange[700],
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
-  }
-
-  // Helper method to clean breed text by removing emojis and extra info
-  String _cleanBreedText(String breed) {
-    // Remove emojis and flags
-    String cleaned =
-        breed.replaceAll(RegExp(r'[\u{1F300}-\u{1F9FF}]', unicode: true), '');
-    cleaned =
-        cleaned.replaceAll(RegExp(r'[\u{2600}-\u{26FF}]', unicode: true), '');
-    cleaned =
-        cleaned.replaceAll(RegExp(r'[\u{1F1E6}-\u{1F1FF}]', unicode: true), '');
-
-    // Remove "BOTTOM OVERLORD BY" text
-    cleaned =
-        cleaned.replaceAll(RegExp(r'BOTTOM OVER[A-Z]+ BY \d+ PIXELS'), '');
-
-    // Clean up extra spaces
-    cleaned = cleaned.replaceAll(RegExp(r'\s+'), ' ').trim();
-
-    return cleaned;
   }
 }

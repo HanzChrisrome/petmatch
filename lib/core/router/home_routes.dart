@@ -10,6 +10,7 @@ import 'package:petmatch/features/pet_profile/screens/pet_information.dart';
 import 'package:petmatch/features/pet_profile/screens/pet_temperament_information.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/activity_level_setup.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/affection_level_setup.dart';
+import 'package:petmatch/features/user_profile/presentation/screen/edit_profile_screen.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/grooming_level_setup.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/patience_level_setup.dart';
 import 'package:petmatch/features/user_profile/presentation/screen/household_setup.dart';
@@ -44,6 +45,11 @@ final homeRoutes = [
         path: '/add-pet',
         name: 'add-pet',
         builder: (context, state) => const AddPetScreen(),
+      ),
+      GoRoute(
+        path: '/edit-profile',
+        name: 'edit-profile',
+        builder: (context, state) => const EditProfileScreen(),
       ),
 
       // no use routes

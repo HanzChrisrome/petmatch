@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 
 class ProfileLoadingScreen extends StatelessWidget {
   const ProfileLoadingScreen({super.key});
@@ -16,15 +17,18 @@ class ProfileLoadingScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const CircularProgressIndicator(
-                color: Color(0xFF0EA5E9),
-                strokeWidth: 4,
+              Lottie.asset(
+                'assets/lottie/Catloading.json',
+                width: 320,
+                height: 320,
+                fit: BoxFit.contain,
+                repeat: true,
               ),
               const SizedBox(height: 20),
               Text(
                 'Saving your profile...',
                 style: GoogleFonts.inter(
-                  fontSize: 18,
+                  fontSize: 24,
                   fontWeight: FontWeight.w600,
                   color: Colors.black87,
                 ),

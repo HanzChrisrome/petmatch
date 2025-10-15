@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:petmatch/core/model/pet_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:petmatch/features/home/provider/favorites_provider.dart';
 import 'package:petmatch/widgets/divider_widget.dart';
 
 class PetDetailsModal extends StatefulWidget {
@@ -217,23 +219,43 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
               Positioned(
                 top: 16,
                 right: 16,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8,
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    final favoritesState = ref.watch(favoritesProvider);
+                    final favoritesNotifier =
+                        ref.read(favoritesProvider.notifier);
+                    final isFavorite =
+                        favoritesState.favoriteIds.contains(pet.id);
+                    return GestureDetector(
+                      onTap: () async {
+                        if (isFavorite) {
+                          await favoritesNotifier.removeFavorite(
+                              context, pet.id);
+                        } else {
+                          await favoritesNotifier.addFavorite(context, pet.id);
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          size: 24,
+                          color:
+                              isFavorite ? Colors.red : _getPrimaryColor(pet),
+                        ),
                       ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.favorite_border,
-                    size: 24,
-                    color: _getPrimaryColor(pet),
-                  ),
+                    );
+                  },
                 ),
               ),
 
@@ -435,12 +457,12 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
               if (pet.dailyExercise != null)
                 _buildHealthBadge('Daily Exercise - ${pet.dailyExercise}',
                     Icons.directions_run, Colors.blue),
-              if (pet.vaccinations == 'Yes')
+              if (pet.vaccinations == true)
                 _buildHealthBadge('Vaccinated', Icons.vaccines, Colors.green),
-              if (pet.spayedNeutered == 'Yes')
+              if (pet.spayedNeutered == true)
                 _buildHealthBadge(
                     'Spayed/Neutered', Icons.healing, Colors.teal),
-              if (pet.specialNeeds == 'Yes')
+              if (pet.specialNeeds == true)
                 _buildHealthBadge(
                     'Special Needs', Icons.medical_services, Colors.red),
               if (pet.groomingNeeds != null)
@@ -471,7 +493,7 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
             _buildBehaviorItem(
               pet,
               'Good with Children',
-              pet.goodWithChildren == 'Yes',
+              pet.goodWithChildren == true,
               Icons.child_care,
             ),
           DividerWidget(
@@ -482,7 +504,7 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
             _buildBehaviorItem(
               pet,
               'Good with Dogs',
-              pet.goodWithDogs == 'Yes',
+              pet.goodWithDogs == true,
               Icons.pets,
             ),
           DividerWidget(
@@ -493,7 +515,7 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
             _buildBehaviorItem(
               pet,
               'Good with Cats',
-              pet.goodWithCats == 'Yes',
+              pet.goodWithCats == true,
               Icons.pets,
             ),
           DividerWidget(
@@ -504,7 +526,7 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
             _buildBehaviorItem(
               pet,
               'House Trained',
-              pet.houseTrained == 'Yes',
+              pet.houseTrained == true,
               Icons.home,
             ),
         ],

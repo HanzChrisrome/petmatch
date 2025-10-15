@@ -12,6 +12,8 @@ class CustomButton extends StatelessWidget {
     this.verticalPadding = 16,
     this.borderRadius = 30,
     this.fontSize = 17,
+    this.borderColor,
+    this.textColor,
   });
 
   final String label;
@@ -23,6 +25,8 @@ class CustomButton extends StatelessWidget {
   final double verticalPadding;
   final double borderRadius;
   final double fontSize;
+  final Color? borderColor; // NEW
+  final Color? textColor; // NEW
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +51,10 @@ class CustomButton extends StatelessWidget {
         backgroundColor: buttonColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadius),
+          side: BorderSide(
+            color: borderColor ?? Colors.transparent, // Use borderColor
+            width: borderColor != null ? 2 : 0,
+          ),
         ),
         padding: EdgeInsets.symmetric(vertical: verticalPadding),
         elevation: 0,
@@ -65,6 +73,9 @@ class CustomButton extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: gradient,
             borderRadius: BorderRadius.circular(borderRadius),
+            border: borderColor != null
+                ? Border.all(color: borderColor!, width: 2)
+                : null,
           ),
           child: Container(
             padding: EdgeInsets.symmetric(vertical: verticalPadding),
@@ -77,19 +88,20 @@ class CustomButton extends StatelessWidget {
   }
 
   Widget _buildButtonContent(BuildContext context) {
+    final effectiveTextColor = textColor ?? Colors.white;
     if (icon != null) {
       return Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: Colors.white, size: 20),
+          Icon(icon, color: effectiveTextColor, size: 20),
           const SizedBox(width: 8),
           Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontSize: fontSize,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: effectiveTextColor,
                   letterSpacing: 0.5,
                 ),
           ),
@@ -101,7 +113,7 @@ class CustomButton extends StatelessWidget {
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               fontSize: fontSize,
               fontWeight: FontWeight.w700,
-              color: Colors.white,
+              color: effectiveTextColor,
               letterSpacing: 0.5,
             ),
       );

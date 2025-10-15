@@ -32,12 +32,14 @@ class AuthNotifier extends Notifier<UserAuthState> {
       full_name,
       user_email,
       user_role,
-      onboarding_complete
+      onboarding_completed
     ''').eq('user_id', userId).single();
 
       final profile = AppUser.fromJson(userRecord);
       final onboardingComplete =
-          userRecord['onboarding_complete'] as bool? ?? false;
+          userRecord['onboarding_completed'] as bool? ?? false;
+
+      print('Onboarding Status: $onboardingComplete');
 
       state = state.copyWith(
         userProfile: profile,
@@ -215,14 +217,14 @@ class AuthNotifier extends Notifier<UserAuthState> {
             'full_name': username,
             'user_role': 'user',
             'created_at': DateTime.now().toIso8601String(),
+            'onboarding_completed': false,
           },
         );
 
-        // Store credentials for verification screen
         state = state.copyWith(
           userEmail: email,
           userPassword: password,
-          isRegistering: true,
+          userId: response.user!.id,
         );
 
         NotifierHelper.closeToast(context);
@@ -245,7 +247,6 @@ class AuthNotifier extends Notifier<UserAuthState> {
       NotifierHelper.closeToast(context);
       throw (errorMessage);
     } finally {
-      state = state.copyWith(isRegistering: false);
       NotifierHelper.closeToast(context);
     }
   }
@@ -389,7 +390,7 @@ class AuthNotifier extends Notifier<UserAuthState> {
 
       // Update database
       await supabase.from('users').update({
-        'onboarding_complete': true,
+        'onboarding_completed': true,
         'updated_at': DateTime.now().toIso8601String(),
       }).eq('user_id', userId);
 

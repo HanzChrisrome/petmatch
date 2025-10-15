@@ -35,6 +35,7 @@ class UserProfileState with _$UserProfileState {
     bool? comfortableWithShyPet,
     bool? financialReady,
     bool? hadPetBefore,
+    bool? okayWithSpecialNeeds,
 
     // Additional fields for future steps
     String? livingSpace, // e.g., 'Apartment', 'House', etc.

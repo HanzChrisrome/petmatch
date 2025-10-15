@@ -21,6 +21,7 @@ dependencies:
   cached_network_image: ^3.3.1
   image_picker: ^1.0.7
   uuid: ^4.3.3
+  google_generative_ai: ^0.2.2
 
   # Location Dependencies:
   philippines_rpcmb: ^0.0.3
@@ -68,3 +69,10 @@ flutter:
 
     # Icons
     - assets/icons/
+
+    # Carousel
+    - assets/carousel/
+
+    # PFP
+    - assets/cat_pfp/
+    - assets/dog_pfp/

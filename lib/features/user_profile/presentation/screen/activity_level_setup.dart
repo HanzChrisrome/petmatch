@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:petmatch/core/utils/responsive_helper.dart';
 import 'package:petmatch/core/constants/asset_paths.dart';
+import 'package:petmatch/features/auth/provider/auth_provider.dart';
 import 'package:petmatch/features/user_profile/provider/user_profile_provider.dart';
 import 'package:petmatch/widgets/back_button.dart';
 
@@ -69,6 +70,11 @@ class _ActivityLevelSetupScreenState
   @override
   void initState() {
     super.initState();
+    // Load saved activity level if it exists
+    final savedLevel = ref.read(userProfileProvider).activityLevel;
+    if (savedLevel != null && savedLevel >= 1 && savedLevel <= 5) {
+      _activityLevel = savedLevel.toDouble();
+    }
   }
 
   @override
@@ -82,7 +88,6 @@ class _ActivityLevelSetupScreenState
   }
 
   Map<String, dynamic> get _currentLevel {
-    // Round to nearest integer to match one of the 5 levels
     final roundedLevel = _activityLevel.round();
     return _activityLevels.firstWhere(
       (level) => level['value'] == roundedLevel,
@@ -482,7 +487,19 @@ class _ActivityLevelSetupScreenState
   }
 
   void _saveActivityLevel() {
-    ref.read(userProfileProvider.notifier).setActivityLevel(
-        context, _activityLevel.round(), _currentLevel['label']);
+    final onboardingComplete = ref.watch(authProvider).onboardingComplete;
+
+    if (onboardingComplete) {
+      ref.read(userProfileProvider.notifier).updateUserProfile(
+            level: _activityLevel.round(),
+            label: _currentLevel['label'],
+            column: 'personality_traits',
+            key: 'activity_level',
+          );
+      Navigator.of(context).pop();
+    } else {
+      ref.read(userProfileProvider.notifier).setActivityLevel(
+          context, _activityLevel.round(), _currentLevel['label']);
+    }
   }
 }

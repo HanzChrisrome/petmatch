@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:petmatch/core/utils/responsive_helper.dart';
 import 'package:petmatch/core/constants/asset_paths.dart';
+import 'package:petmatch/features/auth/provider/auth_provider.dart';
 import 'package:petmatch/features/user_profile/provider/user_profile_provider.dart';
 import 'package:petmatch/widgets/back_button.dart';
 
@@ -72,6 +73,11 @@ class _GroomingLevelSetupScreenState
   @override
   void initState() {
     super.initState();
+    // Load saved grooming level if it exists
+    final savedLevel = ref.read(userProfileProvider).groomingLevel;
+    if (savedLevel != null && savedLevel >= 1 && savedLevel <= 5) {
+      _groomingLevel = savedLevel.toDouble();
+    }
   }
 
   @override
@@ -468,10 +474,19 @@ class _GroomingLevelSetupScreenState
   }
 
   void _saveGroomingLevel() {
-    ref.read(userProfileProvider.notifier).setGroomingLevel(
-          context,
-          _groomingLevel.round(),
-          _currentLevel['label'],
-        );
+    final onboardingComplete = ref.watch(authProvider).onboardingComplete;
+
+    if (onboardingComplete) {
+      ref.read(userProfileProvider.notifier).updateUserProfile(
+            level: _groomingLevel.round(),
+            label: _currentLevel['label'],
+            column: 'personality_traits',
+            key: 'grooming_tolerance',
+          );
+      Navigator.of(context).pop();
+    } else {
+      ref.read(userProfileProvider.notifier).setGroomingLevel(
+          context, _groomingLevel.round(), _currentLevel['label']);
+    }
   }
 }

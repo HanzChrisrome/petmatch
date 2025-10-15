@@ -6,14 +6,14 @@ import 'package:petmatch/widgets/style/themed_textfield.dart';
 
 class BehaviorInfoStep extends ConsumerStatefulWidget {
   final TextEditingController behavioralNotesController;
-  final String? goodWithChildren;
-  final String? goodWithDogs;
-  final String? goodWithCats;
-  final String? houseTrained;
-  final Function(String?) onGoodWithChildrenChanged;
-  final Function(String?) onGoodWithDogsChanged;
-  final Function(String?) onGoodWithCatsChanged;
-  final Function(String?) onHouseTrainedChanged;
+  final bool? goodWithChildren;
+  final bool? goodWithDogs;
+  final bool? goodWithCats;
+  final bool? houseTrained;
+  final Function(bool?) onGoodWithChildrenChanged;
+  final Function(bool?) onGoodWithDogsChanged;
+  final Function(bool?) onGoodWithCatsChanged;
+  final Function(bool?) onHouseTrainedChanged;
 
   const BehaviorInfoStep({
     super.key,
@@ -43,7 +43,7 @@ class _BehaviorInfoStepState extends ConsumerState<BehaviorInfoStep> {
           // Good with Children
           const BuildFieldLabel(text: 'Good with children?', emoji: '👶'),
           const SizedBox(height: 12),
-          _buildThreeOptionToggle(
+          _buildYesNoToggle(
             selected: widget.goodWithChildren,
             onChanged: (value) => widget.onGoodWithChildrenChanged(value),
           ),
@@ -52,7 +52,7 @@ class _BehaviorInfoStepState extends ConsumerState<BehaviorInfoStep> {
           // Good with Dogs
           const BuildFieldLabel(text: 'Good with other dogs?', emoji: '🐕'),
           const SizedBox(height: 12),
-          _buildThreeOptionToggle(
+          _buildYesNoToggle(
             selected: widget.goodWithDogs,
             onChanged: (value) => widget.onGoodWithDogsChanged(value),
           ),
@@ -61,7 +61,7 @@ class _BehaviorInfoStepState extends ConsumerState<BehaviorInfoStep> {
           // Good with Cats
           const BuildFieldLabel(text: 'Good with cats?', emoji: '🐈'),
           const SizedBox(height: 12),
-          _buildThreeOptionToggle(
+          _buildYesNoToggle(
             selected: widget.goodWithCats,
             onChanged: (value) => widget.onGoodWithCatsChanged(value),
           ),
@@ -70,7 +70,10 @@ class _BehaviorInfoStepState extends ConsumerState<BehaviorInfoStep> {
           // House Trained
           const BuildFieldLabel(text: 'House-trained?', emoji: '🏠'),
           const SizedBox(height: 12),
-          _buildHouseTrainedToggle(),
+          _buildYesNoToggle(
+            selected: widget.houseTrained,
+            onChanged: (value) => widget.onHouseTrainedChanged(value),
+          ),
           const SizedBox(height: 24),
 
           // Behavioral Notes
@@ -91,28 +94,22 @@ class _BehaviorInfoStepState extends ConsumerState<BehaviorInfoStep> {
   }
 
   // -------------------------------
-  // Helper to build field labels
+  // Helper to build Yes/No toggle
   // -------------------------------
-  Widget _buildThreeOptionToggle(
-      {required String? selected, required Function(String) onChanged}) {
+  Widget _buildYesNoToggle(
+      {required bool? selected, required Function(bool) onChanged}) {
     final options = [
       {
         'label': 'Yes',
         'emoji': '✅',
-        'value': 'Yes',
+        'value': true,
         'color': const Color(0xFF66BB6A)
       },
       {
         'label': 'No',
         'emoji': '❌',
-        'value': 'No',
+        'value': false,
         'color': const Color(0xFFEF5350)
-      },
-      {
-        'label': 'Unknown',
-        'emoji': '❓',
-        'value': 'Unknown',
-        'color': const Color(0xFFBDBDBD)
       },
     ];
 
@@ -121,7 +118,7 @@ class _BehaviorInfoStepState extends ConsumerState<BehaviorInfoStep> {
         final isSelected = selected == option['value'];
         return Expanded(
           child: GestureDetector(
-            onTap: () => onChanged(option['value'] as String),
+            onTap: () => onChanged(option['value'] as bool),
             child: Container(
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -147,71 +144,6 @@ class _BehaviorInfoStepState extends ConsumerState<BehaviorInfoStep> {
                       fontWeight: FontWeight.w600,
                       color: isSelected ? Colors.white : Colors.black87,
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildHouseTrainedToggle() {
-    final options = [
-      {
-        'label': 'Yes',
-        'emoji': '✅',
-        'value': 'Yes',
-        'color': const Color(0xFF66BB6A)
-      },
-      {
-        'label': 'No',
-        'emoji': '❌',
-        'value': 'No',
-        'color': const Color(0xFFEF5350)
-      },
-      {
-        'label': 'In Progress',
-        'emoji': '🔄',
-        'value': 'In Progress',
-        'color': const Color(0xFF42A5F5)
-      },
-    ];
-
-    return Row(
-      children: options.map((option) {
-        final isSelected = widget.houseTrained == option['value'];
-        return Expanded(
-          child: GestureDetector(
-            onTap: () =>
-                widget.onHouseTrainedChanged(option['value'] as String),
-            child: Container(
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: isSelected ? (option['color'] as Color) : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isSelected
-                      ? (option['color'] as Color)
-                      : Colors.grey[300]!,
-                  width: isSelected ? 2 : 1.5,
-                ),
-              ),
-              child: Column(
-                children: [
-                  Text(option['emoji'] as String,
-                      style: const TextStyle(fontSize: 20)),
-                  const SizedBox(height: 6),
-                  Text(
-                    option['label'] as String,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected ? Colors.white : Colors.black87,
-                    ),
-                    textAlign: TextAlign.center,
                   ),
                 ],
               ),

@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:petmatch/core/utils/notifier_helpers.dart';
 import 'package:petmatch/core/utils/responsive_helper.dart';
 import 'package:petmatch/features/user_profile/provider/user_profile_provider.dart';
 import 'package:petmatch/features/user_profile/presentation/widgets/saving_loading.dart';
 import 'package:go_router/go_router.dart';
 import 'package:petmatch/widgets/back_button.dart';
 import 'package:petmatch/widgets/custom_button.dart';
-import 'package:petmatch/widgets/style/themed_textfield.dart';
 
 class HouseholdSetupScreen extends ConsumerStatefulWidget {
   const HouseholdSetupScreen({super.key});
@@ -22,32 +22,33 @@ class HouseholdSetupScreen extends ConsumerStatefulWidget {
 
 class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
   // Controllers
-  final TextEditingController _existingPetsController = TextEditingController();
-
+  // State for other pet types
   bool? _hasOtherPets;
+  bool _hasOtherDog = false;
+  bool _hasOtherCat = false;
+
   bool? _hasChildren;
   bool? _comfortableWithShyPet;
   bool? _financiallyReady;
   bool? _hadPetsBefore;
+  bool? _okayWithSpecialNeeds;
 
   @override
   void initState() {
     super.initState();
     final profile = ref.read(userProfileProvider);
     _hasOtherPets = profile.hasOtherPets;
-    final existingText = profile.existingPetsDescription ?? '';
-    if (_existingPetsController.text != existingText) {
-      _existingPetsController.text = existingText;
-    }
+    // No controller for other pets, use toggles
     _hasChildren = profile.hasChildren;
     _comfortableWithShyPet = profile.comfortableWithShyPet;
     _financiallyReady = profile.financialReady;
     _hadPetsBefore = profile.hadPetBefore;
+    _okayWithSpecialNeeds = profile.okayWithSpecialNeeds;
   }
 
   @override
   void dispose() {
-    _existingPetsController.dispose();
+    // No controller to dispose for pet type toggles
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,
       overlays: SystemUiOverlay.values,
@@ -151,7 +152,8 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
                           setState(() {
                             _hasOtherPets = value;
                             if (value == false) {
-                              _existingPetsController.clear();
+                              _hasOtherDog = false;
+                              _hasOtherCat = false;
                             }
                           });
                         },
@@ -165,41 +167,6 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
                     ],
                   ),
                 ),
-
-                if (_hasOtherPets == true) ...[
-                  const SizedBox(height: 10),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    padding: EdgeInsets.all(isSmallScreen ? 14 : 18),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFAF5FF),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: const Color(0xFFE9D5FF),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Tell us about them!",
-                          style: TextStyle(
-                            fontSize: isSmallScreen ? 14 : 15,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        ThemedTextField(
-                          controller: _existingPetsController,
-                          label: 'e.g., 1 dog, 2 cats',
-                          prefixIcon: Icons.pets,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
 
                 const SizedBox(height: 10),
 
@@ -302,15 +269,14 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [
-                        Color.fromARGB(255, 247, 187, 234), // light green
-                        Color.fromARGB(255, 223, 96, 184), // medium green
+                        Color.fromARGB(255, 187, 247, 226),
+                        Color.fromARGB(255, 96, 223, 180),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     border: Border.all(
-                      color: const Color.fromARGB(
-                          255, 197, 34, 189), // green border
+                      color: const Color.fromARGB(255, 34, 197, 140),
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(16),
@@ -320,9 +286,11 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildSectionLabel(
-                          "Are you financially ready?", "🥺", isSmallScreen),
+                          "Are you okay with pets with special needs?",
+                          "💙",
+                          isSmallScreen),
                       Text(
-                        "For food, vet visits, and unexpected expenses",
+                        "Some pets may need extra medical care or attention.",
                         style: TextStyle(
                           fontSize: isSmallScreen ? 13 : 14,
                           color: Colors.grey[700],
@@ -331,76 +299,21 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
                       ),
                       const SizedBox(height: 16),
                       _buildYesNoToggle(
-                        _financiallyReady,
+                        _okayWithSpecialNeeds,
                         (value) {
                           setState(() {
-                            _financiallyReady = value;
+                            _okayWithSpecialNeeds = value;
                           });
                         },
                         isSmallScreen,
                         yesGradient: const LinearGradient(
                           colors: [
-                            Color.fromARGB(255, 197, 34, 189),
-                            Color.fromARGB(255, 163, 22, 151)
+                            Color.fromARGB(255, 34, 197, 140),
+                            Color.fromARGB(255, 22, 163, 107)
                           ],
                         ),
-                        yesBorderColor: const Color.fromARGB(255, 163, 22, 139),
-                        yesColor: const Color.fromARGB(255, 192, 34, 197),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color.fromARGB(255, 247, 226, 187), // light green
-                        Color.fromARGB(255, 223, 143, 96), // medium green
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    border: Border.all(
-                      color: const Color.fromARGB(
-                          255, 197, 140, 34), // green border
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  padding: EdgeInsets.all(isSmallScreen ? 14 : 18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSectionLabel(
-                          "Have you had pets before?", "🥺", isSmallScreen),
-                      Text(
-                        "First time owners are welcome too!",
-                        style: TextStyle(
-                          fontSize: isSmallScreen ? 13 : 14,
-                          color: Colors.grey[700],
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildYesNoToggle(
-                        _hadPetsBefore,
-                        (value) {
-                          setState(() {
-                            _hadPetsBefore = value;
-                          });
-                        },
-                        isSmallScreen,
-                        yesGradient: const LinearGradient(
-                          colors: [
-                            Color.fromARGB(255, 197, 140, 34),
-                            Color.fromARGB(255, 163, 107, 22)
-                          ],
-                        ),
-                        yesBorderColor: const Color.fromARGB(255, 163, 102, 22),
-                        yesColor: const Color.fromARGB(255, 197, 159, 34),
+                        yesBorderColor: const Color.fromARGB(255, 22, 163, 107),
+                        yesColor: const Color.fromARGB(255, 34, 197, 159),
                       ),
                     ],
                   ),
@@ -576,15 +489,25 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
     }
 
     // Save to provider
+    // Compose a string for selected pets
+    String? selectedPets;
+    if (_hasOtherDog && _hasOtherCat) {
+      selectedPets = 'Dog, Cat';
+    } else if (_hasOtherDog) {
+      selectedPets = 'Dog';
+    } else if (_hasOtherCat) {
+      selectedPets = 'Cat';
+    } else {
+      selectedPets = null;
+    }
     ref.read(userProfileProvider.notifier).setHouseholdInfo(
           _hasChildren!,
           _hasOtherPets!,
-          _existingPetsController.text.isNotEmpty
-              ? _existingPetsController.text
-              : null,
+          selectedPets,
           _comfortableWithShyPet!,
           _financiallyReady ?? false,
           _hadPetsBefore ?? false,
+          _okayWithSpecialNeeds ?? false,
         );
 
     context.push('/onboarding/profile-loading');

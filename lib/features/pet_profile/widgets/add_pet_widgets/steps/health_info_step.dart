@@ -8,9 +8,9 @@ class HealthInfoStep extends ConsumerStatefulWidget {
   final TextEditingController healthNotesController;
   final TextEditingController specialNeedsDescController;
   final int? groomingNeeds;
-  final String? hasSpecialNeeds;
-  final String? isVaccinationUpToDate;
-  final String? isSpayedNeutered;
+  final bool? hasSpecialNeeds;
+  final bool? isVaccinationUpToDate;
+  final bool? isSpayedNeutered;
   final Function(int?) onGroomingNeedsChanged;
   final Function(bool?) onHasSpecialNeedsChanged;
   final Function(bool?) onVaccinationChanged;
@@ -139,7 +139,7 @@ class _HealthInfoStepState extends ConsumerState<HealthInfoStep> {
   }
 
   Widget _buildYesNoToggle(
-      {required String? isSelected, required Function(bool) onChanged}) {
+      {required bool? isSelected, required Function(bool) onChanged}) {
     return Row(
       children: [
         Expanded(
@@ -148,17 +148,17 @@ class _HealthInfoStepState extends ConsumerState<HealthInfoStep> {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
-                gradient: isSelected == "Yes"
+                gradient: isSelected == true
                     ? const LinearGradient(
                         colors: [Color(0xFF66BB6A), Color(0xFF81C784)])
                     : null,
-                color: isSelected == "Yes" ? null : Colors.white,
+                color: isSelected == true ? null : Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isSelected == "Yes"
+                  color: isSelected == true
                       ? const Color(0xFF66BB6A)
                       : Colors.grey[300]!,
-                  width: isSelected == "Yes" ? 2 : 1.5,
+                  width: isSelected == true ? 2 : 1.5,
                 ),
               ),
               child: Center(
@@ -167,7 +167,7 @@ class _HealthInfoStepState extends ConsumerState<HealthInfoStep> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: isSelected == "Yes" ? Colors.white : Colors.black87,
+                    color: isSelected == true ? Colors.white : Colors.black87,
                   ),
                 ),
               ),
@@ -181,13 +181,13 @@ class _HealthInfoStepState extends ConsumerState<HealthInfoStep> {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
-                color: isSelected == "No" ? Colors.grey[400] : Colors.white,
+                color: isSelected == false ? Colors.grey[400] : Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isSelected == "No"
+                  color: isSelected == false
                       ? Colors.grey[500]!
                       : Colors.grey[300]!,
-                  width: isSelected == "No" ? 2 : 1.5,
+                  width: isSelected == false ? 2 : 1.5,
                 ),
               ),
               child: Center(
@@ -196,7 +196,7 @@ class _HealthInfoStepState extends ConsumerState<HealthInfoStep> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: isSelected == "No" ? Colors.white : Colors.black87,
+                    color: isSelected == false ? Colors.white : Colors.black87,
                   ),
                 ),
               ),

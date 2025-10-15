@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:petmatch/core/utils/responsive_helper.dart';
 import 'package:petmatch/core/constants/asset_paths.dart';
+import 'package:petmatch/features/auth/provider/auth_provider.dart';
 import 'package:petmatch/features/user_profile/provider/user_profile_provider.dart';
 import 'package:petmatch/widgets/back_button.dart';
 
@@ -77,6 +78,11 @@ class _PatienceLevelSetupScreenState
   @override
   void initState() {
     super.initState();
+    // Load saved patience level if it exists
+    final savedLevel = ref.read(userProfileProvider).patienceLevel;
+    if (savedLevel != null && savedLevel >= 1 && savedLevel <= 5) {
+      _patienceLevel = savedLevel.toDouble();
+    }
   }
 
   @override
@@ -473,10 +479,26 @@ class _PatienceLevelSetupScreenState
   }
 
   void _saveActivityLevel() {
-    ref.read(userProfileProvider.notifier).setPatienceLevel(
-          context,
-          _patienceLevel.round(),
-          _currentLevel['label'],
-        );
+    final onboardingComplete = ref.watch(authProvider).onboardingComplete;
+
+    if (onboardingComplete) {
+      ref
+          .read(userProfileProvider.notifier)
+          .updatePatienceLevel(_patienceLevel.round(), _currentLevel['label']);
+      Navigator.of(context).pop();
+      ref.read(userProfileProvider.notifier).updateUserProfile(
+            level: _patienceLevel.round(),
+            label: _currentLevel['label'],
+            column: 'personality_traits',
+            key: 'training_patience',
+          );
+      Navigator.of(context).pop();
+    } else {
+      ref.read(userProfileProvider.notifier).setPatienceLevel(
+            context,
+            _patienceLevel.round(),
+            _currentLevel['label'],
+          );
+    }
   }
 }

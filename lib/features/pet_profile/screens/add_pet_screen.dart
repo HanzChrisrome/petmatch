@@ -44,19 +44,19 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
       TextEditingController();
 
   // Health Information Values
-  String? _isVaccinationUpToDate;
-  String? _isSpayedNeutered;
-  String? _hasSpecialNeeds;
+  bool? _isVaccinationUpToDate;
+  bool? _isSpayedNeutered;
+  bool? _hasSpecialNeeds;
 
   // Behavior Information Controllers
   final TextEditingController _behavioralNotesController =
       TextEditingController();
 
   // Behavior Information Values
-  String? _goodWithChildren;
-  String? _goodWithDogs;
-  String? _goodWithCats;
-  String? _houseTrained;
+  bool? _goodWithChildren;
+  bool? _goodWithDogs;
+  bool? _goodWithCats;
+  bool? _houseTrained;
 
   // Activity Information Values
   double _energyLevel = 3.0;
@@ -106,7 +106,7 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
             isSpayedNeutered: _isSpayedNeutered,
             healthNotes: _healthNotesController.text.trim(),
             hasSpecialNeeds: _hasSpecialNeeds,
-            specialNeedsDescription: _hasSpecialNeeds == "Yes"
+            specialNeedsDescription: _hasSpecialNeeds == true
                 ? _specialNeedsDescController.text.trim()
                 : '',
             groomingNeeds: _groomingNeeds,
@@ -259,15 +259,12 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
                     isSpayedNeutered: _isSpayedNeutered,
                     onGroomingNeedsChanged: (value) =>
                         setState(() => _groomingNeeds = value),
-                    onHasSpecialNeedsChanged: (value) => setState(() =>
-                        _hasSpecialNeeds =
-                            value != null && value ? "Yes" : "No"),
-                    onVaccinationChanged: (value) => setState(() =>
-                        _isVaccinationUpToDate =
-                            value != null && value ? "Yes" : "No"),
-                    onSpayedNeuteredChanged: (value) => setState(() =>
-                        _isSpayedNeutered =
-                            value != null && value ? "Yes" : "No"),
+                    onHasSpecialNeedsChanged: (value) =>
+                        setState(() => _hasSpecialNeeds = value),
+                    onVaccinationChanged: (value) =>
+                        setState(() => _isVaccinationUpToDate = value),
+                    onSpayedNeuteredChanged: (value) =>
+                        setState(() => _isSpayedNeutered = value),
                   ),
                   BehaviorInfoStep(
                     behavioralNotesController: _behavioralNotesController,

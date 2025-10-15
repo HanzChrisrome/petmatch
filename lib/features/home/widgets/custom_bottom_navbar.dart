@@ -30,13 +30,12 @@ class CustomBottomNav extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildNavItem(context, Icons.home, 0, '/home'),
-              _buildNavItem(context, Icons.chat_bubble_outline, 1,
-                  '/home/match-dashboard'),
-              _buildNavItem(context, Icons.favorite_border, 2, '/home/add-pet'),
-              _buildNavItem(context, Icons.calendar_today_outlined, 3,
-                  '/home/notifications'),
               _buildNavItem(
-                  context, Icons.person_outline, 4, '/home/profile-screen'),
+                  context, Icons.favorite_border, 1, '/home/match-dashboard'),
+              _buildNavItem(context, Icons.calendar_today_outlined, 2,
+                  '/home/edit-profile'),
+              _buildNavItem(
+                  context, Icons.person_outline, 3, '/home/profile-screen'),
             ],
           ),
         ),

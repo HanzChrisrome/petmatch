@@ -3,49 +3,31 @@
 import 'dart:io';
 import 'package:petmatch/core/config/supabase_config.dart';
 import 'package:petmatch/core/model/pet_model.dart';
+import 'package:petmatch/core/model/pet_match_model.dart';
 
 class PetRepository {
   final _supabase = supabase;
 
-  Future<List<Pet>> getAllPets() async {
+  Future<List<Pet>> getPets({
+    int limit = 10,
+    int offset = 0,
+  }) async {
     try {
       final response = await _supabase
           .from('pets')
           .select('*, pets_images(*), pet_characteristics(*)')
           .neq('status', 'adopted')
-          .order('created_at', ascending: false);
+          .order('created_at', ascending: false)
+          .range(offset, offset + limit - 1);
 
-      print('📤 Fetched ${(response as List).length} pets from database.');
-
-      print('Raw response: $response');
+      print(
+          '📤 Fetched ${(response as List).length} pets (offset: $offset, limit: $limit).');
 
       return (response as List)
           .map((json) => Pet.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
       print('❌ Error fetching pets: $e');
-      rethrow;
-    }
-  }
-
-  Future<List<Pet>> getPetsBySpecies(String species) async {
-    try {
-      if (species.toLowerCase() == 'all') {
-        return getAllPets();
-      }
-
-      final response = await _supabase
-          .from('pets')
-          .select('*, pets_images(*), pet_characteristics(*)')
-          .eq('species', species.toLowerCase())
-          .neq('status', 'adopted')
-          .order('created_at', ascending: false);
-
-      return (response as List)
-          .map((json) => Pet.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } catch (e) {
-      print('❌ Error fetching pets by species: $e');
       rethrow;
     }
   }
@@ -65,25 +47,35 @@ class PetRepository {
     }
   }
 
-  /// Search pets by name
-  Future<List<Pet>> searchPets(String query) async {
+  /// Get matched pets for a user using the database function
+  Future<List<PetMatch>> getMatchedPetsForUser(String userId) async {
     try {
-      if (query.isEmpty) {
-        return getAllPets();
+      print('🎯 Fetching matched pets for user: $userId');
+
+      // Call the PostgreSQL function
+      final response = await _supabase
+          .rpc('match_pets_for_user_weighted_detailed_v3', params: {
+        'user_uuid': userId,
+      });
+
+      print('📊 Received ${(response as List).length} matched pets');
+
+      // Parse the results
+      final List<PetMatch> matches = [];
+
+      for (var matchData in response) {
+        final petId = matchData['pet_id'] as String;
+        final pet = await getPetById(petId);
+
+        if (pet != null) {
+          matches.add(PetMatch.fromJson(matchData, pet));
+        }
       }
 
-      final response = await _supabase
-          .from('pets')
-          .select('*, pets_images(*), pet_characteristics(*)')
-          .ilike('name', '%$query%')
-          .neq('status', 'adopted')
-          .order('created_at', ascending: false);
-
-      return (response as List)
-          .map((json) => Pet.fromJson(json as Map<String, dynamic>))
-          .toList();
+      print('✅ Successfully parsed ${matches.length} pet matches');
+      return matches;
     } catch (e) {
-      print('❌ Error searching pets: $e');
+      print('❌ Error fetching matched pets: $e');
       rethrow;
     }
   }
@@ -101,17 +93,17 @@ class PetRepository {
     required File? thumbnailImage,
     required List<File> selectedImages,
     // Health Information
-    required String? isVaccinationUpToDate,
-    required String? isSpayedNeutered,
+    required bool? isVaccinationUpToDate,
+    required bool? isSpayedNeutered,
     required String healthNotes,
-    required String? hasSpecialNeeds,
+    required bool? hasSpecialNeeds,
     required String specialNeedsDescription,
     required int? groomingNeeds,
     // Behavior Information
-    required String? goodWithChildren,
-    required String? goodWithDogs,
-    required String? goodWithCats,
-    required String? houseTrained,
+    required bool? goodWithChildren,
+    required bool? goodWithDogs,
+    required bool? goodWithCats,
+    required bool? houseTrained,
     required String behavioralNotes,
     // Activity Information
     required double energyLevel,

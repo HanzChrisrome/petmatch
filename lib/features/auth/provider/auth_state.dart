@@ -18,7 +18,6 @@ class UserAuthState with _$UserAuthState {
     @Default(false) bool isLoggingIn,
     @Default(false) bool isRegistering,
     @Default(false) bool isRequestingChange,
-    @Default(false)
-    bool onboardingComplete, // Track if user completed onboarding
+    @Default(false) bool onboardingComplete,
   }) = _UserAuthState;
 }

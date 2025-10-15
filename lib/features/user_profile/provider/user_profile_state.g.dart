@@ -24,6 +24,7 @@ _$UserProfileStateImpl _$$UserProfileStateImplFromJson(
       comfortableWithShyPet: json['comfortableWithShyPet'] as bool?,
       financialReady: json['financialReady'] as bool?,
       hadPetBefore: json['hadPetBefore'] as bool?,
+      okayWithSpecialNeeds: json['okayWithSpecialNeeds'] as bool?,
       livingSpace: json['livingSpace'] as String?,
       experience: json['experience'] as String?,
       preferredBreeds: (json['preferredBreeds'] as List<dynamic>?)
@@ -54,6 +55,7 @@ Map<String, dynamic> _$$UserProfileStateImplToJson(
       'comfortableWithShyPet': instance.comfortableWithShyPet,
       'financialReady': instance.financialReady,
       'hadPetBefore': instance.hadPetBefore,
+      'okayWithSpecialNeeds': instance.okayWithSpecialNeeds,
       'livingSpace': instance.livingSpace,
       'experience': instance.experience,
       'preferredBreeds': instance.preferredBreeds,

@@ -54,6 +54,7 @@ class ThemedTextField extends StatelessWidget {
       focusedBorderColor: Theme.of(context).colorScheme.onPrimary,
       validator: validator,
       maxLines: maxLines,
+      isPasswordField: isPasswordField,
     );
   }
 }

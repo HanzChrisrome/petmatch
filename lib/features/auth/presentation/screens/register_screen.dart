@@ -71,13 +71,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               ),
                               SizedBox(height: isSmallScreen ? 12 : 20),
                               if (!isSmallScreen)
-                                const Text(
+                                Text(
                                   'Your journey starts here\nTake the first step',
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    height: 1.1,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge!
+                                      .copyWith(
+                                        fontSize: 24,
+                                        height: 1.1,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                   textAlign: TextAlign.center,
                                 ),
                             ],

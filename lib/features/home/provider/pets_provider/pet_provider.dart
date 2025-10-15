@@ -12,35 +12,84 @@ class PetNotifier extends Notifier<PetState> {
 
   PetNotifier(this._repository);
 
+  static const int _pageSize = 10;
+
   @override
   PetState build() {
     return PetState();
   }
 
-  Future<void> fetchAllPets() async {
+  /// 🔹 Fetch first batch (initial load)
+  Future<void> fetchInitialPets() async {
     try {
-      state = state.copyWith(isLoading: true, errorMessage: null);
-      print('📤 Fetching all pets from database...');
+      state = state.copyWith(
+        isLoading: true,
+        errorMessage: null,
+        currentPage: 0,
+        hasMore: true,
+      );
+      print('📤 Fetching first batch of pets...');
 
-      final pets = await _repository.getAllPets();
+      final pets = await _repository.getPets(limit: _pageSize, offset: 0);
 
       state = state.copyWith(
         pets: pets,
         filteredPets: pets,
         isLoading: false,
+        currentPage: 1,
+        hasMore: pets.length == _pageSize,
       );
 
-      print('✅ Fetched ${pets.length} pets successfully!');
-      print('💾 All pets stored in state for local filtering');
+      print('✅ Fetched ${pets.length} pets (page 1)');
     } catch (e) {
+      print('❌ Error fetching pets: $e');
       state = state.copyWith(
         isLoading: false,
         errorMessage: 'Failed to fetch pets: $e',
       );
-      print('❌ Error fetching pets: $e');
     }
   }
 
+  /// 🔹 Load next batch (pagination)
+  Future<void> fetchMorePets() async {
+    if (state.isFetchingMore || !state.hasMore) return;
+
+    print('⬇️ Loading more pets...');
+    state = state.copyWith(isFetchingMore: true);
+
+    try {
+      final offset = state.pets?.length ?? 0;
+      final newPets =
+          await _repository.getPets(limit: _pageSize, offset: offset);
+
+      if (newPets.isEmpty) {
+        print('🚫 No more pets to load.');
+        state = state.copyWith(isFetchingMore: false, hasMore: false);
+        return;
+      }
+
+      final updatedPets = [...?state.pets, ...newPets];
+
+      state = state.copyWith(
+        pets: updatedPets,
+        filteredPets: updatedPets,
+        isFetchingMore: false,
+        hasMore: newPets.length == _pageSize,
+        currentPage: state.currentPage + 1,
+      );
+
+      print(
+          '✅ Loaded ${newPets.length} more pets (total: ${updatedPets.length})');
+    } catch (e) {
+      print('❌ Error loading more pets: $e');
+      state = state.copyWith(
+        isFetchingMore: false,
+        errorMessage: 'Failed to load more pets: $e',
+      );
+    }
+  }
+
+  /// 🔹 Save new pet and refresh list
   Future<void> savePet({
     required String petName,
     required String species,
@@ -53,17 +102,17 @@ class PetNotifier extends Notifier<PetState> {
     required File? thumbnailImage,
     required List<File> selectedImages,
     // Health Information
-    required String? isVaccinationUpToDate,
-    required String? isSpayedNeutered,
+    required bool? isVaccinationUpToDate,
+    required bool? isSpayedNeutered,
     required String healthNotes,
-    required String? hasSpecialNeeds,
+    required bool? hasSpecialNeeds,
     required String specialNeedsDescription,
     required int? groomingNeeds,
     // Behavior Information
-    required String? goodWithChildren,
-    required String? goodWithDogs,
-    required String? goodWithCats,
-    required String? houseTrained,
+    required bool? goodWithChildren,
+    required bool? goodWithDogs,
+    required bool? goodWithCats,
+    required bool? houseTrained,
     required String behavioralNotes,
     // Activity Information
     required double energyLevel,
@@ -119,7 +168,7 @@ class PetNotifier extends Notifier<PetState> {
       print('✅ Pet saved successfully!');
       print('🔄 Refreshing pet list...');
 
-      await fetchAllPets();
+      await fetchInitialPets(); // 👈 reload first page after saving
       state = state.copyWith(isLoading: false);
     } catch (e) {
       state = state.copyWith(
@@ -131,6 +180,7 @@ class PetNotifier extends Notifier<PetState> {
     }
   }
 
+  /// 🔹 Local filtering
   void filterByCategory(String category) {
     print('🔍 Filtering pets locally by category: $category');
 
@@ -139,12 +189,10 @@ class PetNotifier extends Notifier<PetState> {
 
     if (category.toLowerCase() == 'all') {
       filtered = allPets;
-      print('✅ Showing all ${filtered.length} pets');
     } else {
       filtered = allPets
           .where((pet) => pet.species.toLowerCase() == category.toLowerCase())
           .toList();
-      print('✅ Filtered to ${filtered.length} ${category.toLowerCase()}(s)');
     }
 
     state = state.copyWith(
@@ -154,6 +202,7 @@ class PetNotifier extends Notifier<PetState> {
     );
   }
 
+  /// 🔹 Local search
   void searchPets(String query) {
     print('🔍 Searching pets locally with query: "$query"');
 
@@ -176,38 +225,30 @@ class PetNotifier extends Notifier<PetState> {
         .where((pet) => pet.name.toLowerCase().contains(query.toLowerCase()))
         .toList();
 
-    state = state.copyWith(
-      filteredPets: filtered,
-      searchQuery: query,
-    );
-
-    print('✅ Found ${filtered.length} pet(s) matching "$query"');
+    state = state.copyWith(filteredPets: filtered, searchQuery: query);
   }
 
-  void setSelectedCategory(String category) {
-    filterByCategory(category);
-  }
+  void setSelectedCategory(String category) => filterByCategory(category);
 
-  void clearError() {
-    state = state.copyWith(errorMessage: null);
-  }
+  void clearError() => state = state.copyWith(errorMessage: null);
 
   void clearSearch() {
     print('🧹 Clearing search');
     filterByCategory(state.selectedCategory ?? 'All');
   }
 
+  /// 🔹 Refresh pets (reload first page)
   Future<void> refresh() async {
-    print('🔄 Refreshing pets from database...');
-    await fetchAllPets();
+    print('🔄 Refreshing pets...');
+    await fetchInitialPets();
 
-    final searchQuery = state.searchQuery ?? '';
-    final selectedCategory = state.selectedCategory ?? 'All';
+    final query = state.searchQuery ?? '';
+    final category = state.selectedCategory ?? 'All';
 
-    if (searchQuery.isNotEmpty) {
-      searchPets(searchQuery);
-    } else if (selectedCategory != 'All') {
-      filterByCategory(selectedCategory);
+    if (query.isNotEmpty) {
+      searchPets(query);
+    } else if (category != 'All') {
+      filterByCategory(category);
     }
   }
 }

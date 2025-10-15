@@ -52,6 +52,18 @@ class _PetPreferenceScreenState extends ConsumerState<PetPreferenceScreen> {
   @override
   void initState() {
     super.initState();
+    // Load saved pet preference if it exists
+    final savedPreference = ref.read(userProfileProvider).petPreference;
+    if (savedPreference != null) {
+      // Map preference string to value
+      if (savedPreference == 'Cat') {
+        _selectedPetValue = 1.0;
+      } else if (savedPreference == 'No Preference') {
+        _selectedPetValue = 2.0;
+      } else if (savedPreference == 'Dog') {
+        _selectedPetValue = 3.0;
+      }
+    }
   }
 
   @override
@@ -447,10 +459,16 @@ class _PetPreferenceScreenState extends ConsumerState<PetPreferenceScreen> {
   }
 
   void _savePetPreference() {
-    // Get the selected pet preference
     final selectedPet = _currentPetOption['label'] as String;
-    ref
-        .read(userProfileProvider.notifier)
-        .setPetPreference(context, selectedPet);
+    final isEditMode = ModalRoute.of(context)?.canPop ?? false;
+
+    if (isEditMode) {
+      ref.read(userProfileProvider.notifier).updatePetPreference(selectedPet);
+      Navigator.of(context).pop();
+    } else {
+      ref
+          .read(userProfileProvider.notifier)
+          .setPetPreference(context, selectedPet);
+    }
   }
 }

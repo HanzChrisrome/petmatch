@@ -9,22 +9,41 @@ class ToastService {
     required BuildContext context,
     required String message,
     String? description,
-    ToastificationStyle style = ToastificationStyle.flat,
+    ToastificationStyle style = ToastificationStyle.fillColored,
     ToastificationType type = ToastificationType.info,
     Alignment alignment = Alignment.topCenter,
     bool showProgressBar = false,
-    bool applyBlurEffect = true,
+    bool applyBlurEffect = false,
     bool pauseOnHover = true,
     bool dragToClose = true,
     Duration autoCloseDuration = const Duration(seconds: 3),
   }) {
+    Color backgroundColor;
+    switch (type) {
+      case ToastificationType.error:
+        backgroundColor = const Color.fromARGB(255, 109, 14, 14); // dark red
+        break;
+      case ToastificationType.success:
+        backgroundColor = Colors.green.shade700;
+        break;
+      case ToastificationType.warning:
+        backgroundColor = Colors.orange.shade800;
+        break;
+      case ToastificationType.info:
+      default:
+        backgroundColor = Colors.blue.shade700;
+        break;
+    }
+
     toastification.show(
       context: context,
+      showIcon: false,
+      backgroundColor: backgroundColor, // 👈 apply color
       title: Text(
         message,
         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
               fontWeight: FontWeight.w500,
-              color: const Color.fromARGB(255, 77, 77, 77),
+              color: Colors.white, // 👈 better contrast on dark bg
             ),
       ),
       description: description == null
@@ -56,22 +75,21 @@ class ToastService {
       showIcon: false,
       title: Row(
         children: [
-          LoadingAnimationWidget.beat(color: Colors.green, size: 20),
+          LoadingAnimationWidget.progressiveDots(
+              color: const Color.fromARGB(255, 0, 41, 75), size: 20),
           const SizedBox(width: 20),
           Text(
             message,
             style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  fontWeight: FontWeight.w500,
-                  color: const Color.fromARGB(255, 77, 77, 77),
-                ),
+                fontWeight: FontWeight.w500,
+                color: const Color.fromARGB(255, 1, 34, 61)),
           ),
         ],
       ),
-      style: ToastificationStyle.flatColored,
+      style: ToastificationStyle.fillColored,
       type: ToastificationType.info,
       alignment: Alignment.topCenter,
       showProgressBar: false,
-      applyBlurEffect: true,
       pauseOnHover: true,
       dragToClose: false,
       closeOnClick: false,

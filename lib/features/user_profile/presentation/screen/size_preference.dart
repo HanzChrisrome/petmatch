@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:petmatch/core/utils/responsive_helper.dart';
 import 'package:petmatch/core/constants/asset_paths.dart';
+import 'package:petmatch/features/auth/provider/auth_provider.dart';
 import 'package:petmatch/features/user_profile/provider/user_profile_provider.dart';
 import 'package:petmatch/widgets/back_button.dart';
 
@@ -23,7 +24,7 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
   final List<Map<String, dynamic>> _catSizeOptions = [
     {
       'value': 1,
-      'label': 'Small Cat',
+      'label': 'Small',
       'emoji': '🐱',
       'image': UserProfileAssets.sizeSmallCat,
       'color': const Color.fromARGB(255, 255, 145, 222),
@@ -32,7 +33,7 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
     },
     {
       'value': 2,
-      'label': 'Medium Cat',
+      'label': 'Medium',
       'emoji': '😺',
       'image': UserProfileAssets.sizeMediumCat,
       'color': const Color.fromARGB(255, 166, 124, 253),
@@ -41,7 +42,7 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
     },
     {
       'value': 3,
-      'label': 'Large Cat',
+      'label': 'Large',
       'emoji': '🦁',
       'image': UserProfileAssets.sizeLargeCat,
       'color': const Color.fromARGB(255, 117, 154, 253),
@@ -53,7 +54,7 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
   final List<Map<String, dynamic>> _dogSizeOptions = [
     {
       'value': 1,
-      'label': 'Small Dog',
+      'label': 'Small',
       'emoji': '🐕',
       'image': UserProfileAssets.sizeSmallDog,
       'color': const Color.fromARGB(255, 255, 206, 43),
@@ -62,7 +63,7 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
     },
     {
       'value': 2,
-      'label': 'Medium Dog',
+      'label': 'Medium',
       'emoji': '🐶',
       'image': UserProfileAssets.sizeMediumDog,
       'color': const Color.fromARGB(255, 63, 211, 154),
@@ -71,7 +72,7 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
     },
     {
       'value': 3,
-      'label': 'Large Dog',
+      'label': 'Large',
       'emoji': '🐕‍🦺',
       'image': UserProfileAssets.sizeLargeDog,
       'color': const Color.fromARGB(255, 255, 127, 80),
@@ -114,6 +115,18 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
   @override
   void initState() {
     super.initState();
+    // Load saved size preference if it exists
+    final savedSize = ref.read(userProfileProvider).sizePreference;
+    if (savedSize != null) {
+      // Map size string to value (1 = small, 2 = medium, 3 = large)
+      if (savedSize.toLowerCase().contains('small')) {
+        _selectedSizeValue = 1.0;
+      } else if (savedSize.toLowerCase().contains('medium')) {
+        _selectedSizeValue = 2.0;
+      } else if (savedSize.toLowerCase().contains('large')) {
+        _selectedSizeValue = 3.0;
+      }
+    }
   }
 
   @override
@@ -539,12 +552,16 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
   }
 
   void _saveSizePreference() {
-    // Get the selected size preference
     final selectedSize = _currentSizeOption['label'] as String;
+    final onboardingComplete = ref.watch(authProvider).onboardingComplete;
 
-    // Save to provider
-    ref
-        .read(userProfileProvider.notifier)
-        .setSizePreference(context, selectedSize);
+    if (onboardingComplete) {
+      ref.read(userProfileProvider.notifier).updateSizePreference(selectedSize);
+      Navigator.of(context).pop();
+    } else {
+      ref
+          .read(userProfileProvider.notifier)
+          .setSizePreference(context, selectedSize);
+    }
   }
 }

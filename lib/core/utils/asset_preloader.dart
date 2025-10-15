@@ -11,9 +11,9 @@ class UserProfileAssetPreloader {
       final assets = UserProfileAssets.getAllAssets();
       await Future.wait(
         assets.map((path) {
-          return precacheImage(AssetImage(path), context).then((_) {
-            debugPrint('✅ Loaded: $path');
-          }).catchError((error) {
+          return precacheImage(AssetImage(path), context)
+              .then((_) {})
+              .catchError((error) {
             debugPrint('❌ Failed to load: $path - $error');
           });
         }),

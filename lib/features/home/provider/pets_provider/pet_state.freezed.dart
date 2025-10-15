@@ -21,6 +21,11 @@ mixin _$PetState {
   String? get selectedCategory => throw _privateConstructorUsedError;
   String? get searchQuery => throw _privateConstructorUsedError;
   bool get isLoading => throw _privateConstructorUsedError;
+  bool get isFetchingMore => throw _privateConstructorUsedError;
+  bool get hasMore =>
+      throw _privateConstructorUsedError; // 👈 indicates if there’s more data to load
+  int get currentPage =>
+      throw _privateConstructorUsedError; // 👈 current page (or batch index)
   String? get errorMessage => throw _privateConstructorUsedError;
 
   /// Create a copy of PetState
@@ -41,6 +46,9 @@ abstract class $PetStateCopyWith<$Res> {
       String? selectedCategory,
       String? searchQuery,
       bool isLoading,
+      bool isFetchingMore,
+      bool hasMore,
+      int currentPage,
       String? errorMessage});
 }
 
@@ -64,6 +72,9 @@ class _$PetStateCopyWithImpl<$Res, $Val extends PetState>
     Object? selectedCategory = freezed,
     Object? searchQuery = freezed,
     Object? isLoading = null,
+    Object? isFetchingMore = null,
+    Object? hasMore = null,
+    Object? currentPage = null,
     Object? errorMessage = freezed,
   }) {
     return _then(_value.copyWith(
@@ -87,6 +98,18 @@ class _$PetStateCopyWithImpl<$Res, $Val extends PetState>
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
               as bool,
+      isFetchingMore: null == isFetchingMore
+          ? _value.isFetchingMore
+          : isFetchingMore // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasMore: null == hasMore
+          ? _value.hasMore
+          : hasMore // ignore: cast_nullable_to_non_nullable
+              as bool,
+      currentPage: null == currentPage
+          ? _value.currentPage
+          : currentPage // ignore: cast_nullable_to_non_nullable
+              as int,
       errorMessage: freezed == errorMessage
           ? _value.errorMessage
           : errorMessage // ignore: cast_nullable_to_non_nullable
@@ -109,6 +132,9 @@ abstract class _$$PetStateImplCopyWith<$Res>
       String? selectedCategory,
       String? searchQuery,
       bool isLoading,
+      bool isFetchingMore,
+      bool hasMore,
+      int currentPage,
       String? errorMessage});
 }
 
@@ -130,6 +156,9 @@ class __$$PetStateImplCopyWithImpl<$Res>
     Object? selectedCategory = freezed,
     Object? searchQuery = freezed,
     Object? isLoading = null,
+    Object? isFetchingMore = null,
+    Object? hasMore = null,
+    Object? currentPage = null,
     Object? errorMessage = freezed,
   }) {
     return _then(_$PetStateImpl(
@@ -153,6 +182,18 @@ class __$$PetStateImplCopyWithImpl<$Res>
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
               as bool,
+      isFetchingMore: null == isFetchingMore
+          ? _value.isFetchingMore
+          : isFetchingMore // ignore: cast_nullable_to_non_nullable
+              as bool,
+      hasMore: null == hasMore
+          ? _value.hasMore
+          : hasMore // ignore: cast_nullable_to_non_nullable
+              as bool,
+      currentPage: null == currentPage
+          ? _value.currentPage
+          : currentPage // ignore: cast_nullable_to_non_nullable
+              as int,
       errorMessage: freezed == errorMessage
           ? _value.errorMessage
           : errorMessage // ignore: cast_nullable_to_non_nullable
@@ -170,6 +211,9 @@ class _$PetStateImpl implements _PetState {
       this.selectedCategory,
       this.searchQuery,
       this.isLoading = false,
+      this.isFetchingMore = false,
+      this.hasMore = true,
+      this.currentPage = 0,
       this.errorMessage})
       : _pets = pets,
         _filteredPets = filteredPets;
@@ -202,11 +246,22 @@ class _$PetStateImpl implements _PetState {
   @JsonKey()
   final bool isLoading;
   @override
+  @JsonKey()
+  final bool isFetchingMore;
+  @override
+  @JsonKey()
+  final bool hasMore;
+// 👈 indicates if there’s more data to load
+  @override
+  @JsonKey()
+  final int currentPage;
+// 👈 current page (or batch index)
+  @override
   final String? errorMessage;
 
   @override
   String toString() {
-    return 'PetState(pets: $pets, filteredPets: $filteredPets, selectedCategory: $selectedCategory, searchQuery: $searchQuery, isLoading: $isLoading, errorMessage: $errorMessage)';
+    return 'PetState(pets: $pets, filteredPets: $filteredPets, selectedCategory: $selectedCategory, searchQuery: $searchQuery, isLoading: $isLoading, isFetchingMore: $isFetchingMore, hasMore: $hasMore, currentPage: $currentPage, errorMessage: $errorMessage)';
   }
 
   @override
@@ -223,6 +278,11 @@ class _$PetStateImpl implements _PetState {
                 other.searchQuery == searchQuery) &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
+            (identical(other.isFetchingMore, isFetchingMore) ||
+                other.isFetchingMore == isFetchingMore) &&
+            (identical(other.hasMore, hasMore) || other.hasMore == hasMore) &&
+            (identical(other.currentPage, currentPage) ||
+                other.currentPage == currentPage) &&
             (identical(other.errorMessage, errorMessage) ||
                 other.errorMessage == errorMessage));
   }
@@ -235,6 +295,9 @@ class _$PetStateImpl implements _PetState {
       selectedCategory,
       searchQuery,
       isLoading,
+      isFetchingMore,
+      hasMore,
+      currentPage,
       errorMessage);
 
   /// Create a copy of PetState
@@ -253,6 +316,9 @@ abstract class _PetState implements PetState {
       final String? selectedCategory,
       final String? searchQuery,
       final bool isLoading,
+      final bool isFetchingMore,
+      final bool hasMore,
+      final int currentPage,
       final String? errorMessage}) = _$PetStateImpl;
 
   @override
@@ -265,6 +331,12 @@ abstract class _PetState implements PetState {
   String? get searchQuery;
   @override
   bool get isLoading;
+  @override
+  bool get isFetchingMore;
+  @override
+  bool get hasMore; // 👈 indicates if there’s more data to load
+  @override
+  int get currentPage; // 👈 current page (or batch index)
   @override
   String? get errorMessage;
 

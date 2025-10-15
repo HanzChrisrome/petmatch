@@ -1,8 +1,13 @@
+// ignore_for_file: prefer_const_constructors, unused_import, unused_element, avoid_unnecessary_containers, unused_field
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:petmatch/features/auth/provider/auth_provider.dart';
 import 'package:petmatch/features/home/widgets/custom_bottom_navbar.dart';
+import 'package:petmatch/features/user_profile/provider/user_profile_provider.dart';
+import 'package:petmatch/widgets/divider_widget.dart';
 
 class ProfileDashboard extends ConsumerStatefulWidget {
   const ProfileDashboard({super.key});
@@ -12,8 +17,50 @@ class ProfileDashboard extends ConsumerStatefulWidget {
 }
 
 class _ProfileDashboardState extends ConsumerState<ProfileDashboard> {
+  bool _isLoading = true;
+
+  final catPfps = [
+    'assets/cat_pfp/cat1.png',
+    'assets/cat_pfp/cat2.png',
+    'assets/cat_pfp/cat3.png',
+    'assets/cat_pfp/cat4.png',
+    'assets/cat_pfp/cat5.png',
+    'assets/cat_pfp/cat6.png',
+    'assets/cat_pfp/cat7.png',
+    'assets/cat_pfp/cat8.png',
+    'assets/cat_pfp/cat9.png',
+  ];
+
+  final dogPfps = [
+    'assets/dog_pfp/dog1.png',
+    'assets/dog_pfp/dog2.png',
+    'assets/dog_pfp/dog3.png',
+    'assets/dog_pfp/dog4.png',
+    'assets/dog_pfp/dog5.png',
+    'assets/dog_pfp/dog6.png',
+    'assets/dog_pfp/dog7.png',
+    'assets/dog_pfp/dog8.png',
+    'assets/dog_pfp/dog9.png',
+  ];
+
+  final fallbackPfp = 'assets/geometric.png';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    setState(() => _isLoading = true);
+    await ref.read(userProfileProvider.notifier).loadUserProfile();
+    setState(() => _isLoading = false);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final profile = ref.watch(userProfileProvider);
+
     final authState = ref.watch(authProvider);
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
@@ -42,184 +89,186 @@ class _ProfileDashboardState extends ConsumerState<ProfileDashboard> {
         ],
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-
-            // Profile Avatar and Info
-            CircleAvatar(
-              radius: isSmallScreen ? 45 : 50,
-              backgroundColor: Colors.grey[300],
-              child: const Icon(
-                Icons.person,
-                size: 50,
-                color: Colors.white,
-              ),
-              // You can replace with Image.network or Image.asset for actual profile picture
-            ),
-
-            const SizedBox(height: 16),
-
-            Text(
-              authState.userName ?? 'Charlotte King',
-              style: TextStyle(
-                fontSize: isSmallScreen ? 20 : 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-
-            const SizedBox(height: 4),
-
-            Text(
-              authState.userEmail ?? '@johnkingraphics',
-              style: TextStyle(
-                fontSize: isSmallScreen ? 13 : 14,
-                color: Colors.grey[600],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Edit Profile Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 80),
-              child: ElevatedButton(
-                onPressed: () {
-                  context.push('/home/profile-setup');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF5757),
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isSmallScreen ? 32 : 40,
-                    vertical: isSmallScreen ? 10 : 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  elevation: 0,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 15 : 16),
+          child: Column(
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey[300]!),
                 ),
-                child: Text(
-                  'Edit Profile',
-                  style: TextStyle(
-                    fontSize: isSmallScreen ? 14 : 15,
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: isSmallScreen ? 45 : 50,
+                      backgroundColor: Colors.grey[300],
+                      child: const Icon(
+                        Icons.person,
+                        size: 50,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      authState.userName ?? 'Charlotte King',
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 20 : 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      authState.userEmail ?? '@johnkingraphics',
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 13 : 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-
-            const SizedBox(height: 30),
-
-            // Menu Items
-            _buildMenuItem(
-              icon: Icons.favorite_border,
-              title: 'Activity Level',
-              onTap: () {
-                context.push('/home/activity-level-setup');
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.favorite_border,
-              title: 'Patience Level',
-              onTap: () {
-                context.push('/home/patience-level-setup');
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.favorite_border,
-              title: 'Affection',
-              onTap: () {
-                context.push('/home/affection-level-setup');
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.favorite_border,
-              title: 'Grooming',
-              onTap: () {
-                context.push('/home/grooming-level-setup');
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.favorite_border,
-              title: 'Pet Preference',
-              onTap: () {
-                context.push('/home/pet-preference-setup');
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.favorite_border,
-              title: 'Size Preference',
-              onTap: () {
-                context.push('/home/size-preference-setup');
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.location_on_outlined,
-              title: 'Household',
-              onTap: () {
-                context.push('/home/household-setup');
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.delete_outline,
-              title: 'Pet Information',
-              onTap: () {
-                context.push('/home/pet-information');
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.history,
-              title: 'Health Information',
-              onTap: () {
-                context.push('/home/pet-health-information');
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.history,
-              title: 'Pet Activity Information',
-              onTap: () {
-                context.push('/home/pet-activity-information');
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.history,
-              title: 'Pet Temperament Information',
-              onTap: () {
-                context.push('/home/pet-temperament-information');
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.history,
-              title: 'Pet Behavior Information',
-              onTap: () {
-                context.push('/home/pet-behavior-information');
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.logout,
-              title: 'Log out',
-              textColor: const Color(0xFFFF5757),
-              onTap: () {
-                ref.read(authProvider.notifier).signOut(context);
-              },
-            ),
-
-            const SizedBox(height: 100),
-          ],
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                margin: const EdgeInsets.only(top: 8, bottom: 8),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFF6BCF7F),
+                      Color(0xFF4DB8E8),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.white, size: 22),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Tap on a label below to edit your specific profile preferences.',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Column(
+                  children: [
+                    _buildEditCard(
+                      icon: Icons.favorite_rounded,
+                      title: 'Pet Type',
+                      value: profile.petPreference ?? 'Not set',
+                      color: const Color.fromARGB(255, 117, 154, 253),
+                      onTap: () => context.push('/onboarding/pet-preference'),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildEditCard(
+                      icon: Icons.straighten_rounded,
+                      title: 'Size Preference',
+                      value: profile.sizePreference ?? 'Not set',
+                      color: const Color.fromARGB(255, 63, 211, 154),
+                      onTap: () => context.push('/onboarding/size-preference'),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildEditCard(
+                      icon: Icons.fitness_center_rounded,
+                      title: 'Activity Level',
+                      value: profile.activityLabel ?? 'Not set',
+                      subtitle: profile.activityLevel != null
+                          ? '${profile.activityLevel}/5'
+                          : null,
+                      color: const Color.fromARGB(255, 247, 127, 211),
+                      onTap: () => context.push('/onboarding/activity-level'),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildEditCard(
+                      icon: Icons.spa_rounded,
+                      title: 'Grooming Tolerance',
+                      value: profile.groomingLabel ?? 'Not set',
+                      subtitle: profile.groomingLevel != null
+                          ? '${profile.groomingLevel}/5'
+                          : null,
+                      color: const Color.fromARGB(255, 68, 127, 236),
+                      onTap: () => context.push('/onboarding/grooming-level'),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildEditCard(
+                      icon: Icons.favorite_border_rounded,
+                      title: 'Affection Preference',
+                      value: profile.affectionLabel ?? 'Not set',
+                      subtitle: profile.affectionLevel != null
+                          ? '${profile.affectionLevel}/5'
+                          : null,
+                      color: const Color.fromARGB(255, 133, 54, 179),
+                      onTap: () => context.push('/onboarding/affection-level'),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildEditCard(
+                      icon: Icons.timelapse_rounded,
+                      title: 'Training Patience',
+                      value: profile.patienceLabel ?? 'Not set',
+                      subtitle: profile.patienceLevel != null
+                          ? '${profile.patienceLevel}/5'
+                          : null,
+                      color: const Color.fromARGB(255, 63, 211, 154),
+                      onTap: () => context.push('/onboarding/patience-level'),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildEditCard(
+                      icon: Icons.family_restroom_rounded,
+                      title: 'Household Setup',
+                      value: _getHouseholdSummary(profile),
+                      color: const Color.fromARGB(255, 255, 206, 43),
+                      onTap: () => context.push('/onboarding/household-setup'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 15),
+              Container(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFF5757),
+                    foregroundColor: Colors.white,
+                    minimumSize: Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  onPressed: () {
+                    ref.read(authProvider.notifier).signOut(context);
+                  },
+                  child: const Text(
+                    'Log out',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: const CustomBottomNav(currentIndex: 4),
@@ -227,7 +276,8 @@ class _ProfileDashboardState extends ConsumerState<ProfileDashboard> {
   }
 
   Widget _buildMenuItem({
-    required IconData icon,
+    IconData? icon,
+    String? emoji,
     required String title,
     required VoidCallback onTap,
     Color? textColor,
@@ -235,14 +285,20 @@ class _ProfileDashboardState extends ConsumerState<ProfileDashboard> {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Row(
           children: [
-            Icon(
-              icon,
-              size: 24,
-              color: textColor ?? Colors.black87,
-            ),
+            if (emoji != null)
+              Text(
+                emoji,
+                style: TextStyle(fontSize: 24),
+              )
+            else if (icon != null)
+              Icon(
+                icon,
+                size: 24,
+                color: textColor ?? Colors.black87,
+              ),
             const SizedBox(width: 20),
             Expanded(
               child: Text(
@@ -263,5 +319,121 @@ class _ProfileDashboardState extends ConsumerState<ProfileDashboard> {
         ),
       ),
     );
+  }
+
+  Widget _buildEditCard({
+    required IconData icon,
+    required String title,
+    required String value,
+    String? subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 238, 238, 238),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Icon container
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: color,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Text content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          value,
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            subtitle,
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: color,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Arrow icon
+            Icon(
+              Icons.chevron_right_rounded,
+              color: Colors.grey[400],
+              size: 24,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getHouseholdSummary(profile) {
+    final List<String> items = [];
+
+    if (profile.hasChildren == true) items.add('Has children');
+    if (profile.hasOtherPets == true) items.add('Has pets');
+    if (profile.comfortableWithShyPet == true) items.add('OK with shy pets');
+    if (profile.financialReady == true) items.add('Financially ready');
+    if (profile.hadPetBefore == true) items.add('Pet experience');
+
+    if (items.isEmpty) return 'Not set';
+    if (items.length == 1) return items.first;
+    return '${items.length} settings configured';
   }
 }
