@@ -32,8 +32,7 @@ class CustomBottomNav extends StatelessWidget {
               _buildNavItem(context, Icons.home, 0, '/home'),
               _buildNavItem(
                   context, Icons.favorite_border, 1, '/home/match-dashboard'),
-              _buildNavItem(context, Icons.calendar_today_outlined, 2,
-                  '/home/edit-profile'),
+              _buildNavItem(context, Icons.star, 2, '/home/favorite-pets'),
               _buildNavItem(
                   context, Icons.person_outline, 3, '/home/profile-screen'),
             ],
@@ -49,15 +48,17 @@ class CustomBottomNav extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         if (!isSelected) {
-          context.go(route); // navigation handled here
+          context.go(route);
         }
       },
       child: Container(
         padding: const EdgeInsets.all(15),
         child: Icon(
           icon,
-          color: isSelected ? Colors.orange : Colors.grey[600],
-          size: 26,
+          color: isSelected
+              ? const Color.fromARGB(255, 34, 34, 34)
+              : Colors.grey[600],
+          size: 28,
         ),
       ),
     );

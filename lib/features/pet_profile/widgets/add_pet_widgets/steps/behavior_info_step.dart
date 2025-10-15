@@ -75,19 +75,6 @@ class _BehaviorInfoStepState extends ConsumerState<BehaviorInfoStep> {
             onChanged: (value) => widget.onHouseTrainedChanged(value),
           ),
           const SizedBox(height: 24),
-
-          // Behavioral Notes
-          const BuildFieldLabel(
-              text: 'Behavioral Notes',
-              emoji: '📝',
-              subtitle: 'Behaviors, quirks, important details'),
-          const SizedBox(height: 8),
-          ThemedTextField(
-            controller: widget.behavioralNotesController,
-            label: 'e.g., Loves car rides, scared of loud noises',
-            prefixIcon: Icons.edit_note,
-            maxLines: 3,
-          ),
         ],
       ),
     );

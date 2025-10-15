@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:petmatch/core/utils/notifier_helpers.dart';
 import 'package:petmatch/core/utils/responsive_helper.dart';
+import 'package:petmatch/features/auth/provider/auth_provider.dart';
 import 'package:petmatch/features/user_profile/provider/user_profile_provider.dart';
 import 'package:petmatch/features/user_profile/presentation/widgets/saving_loading.dart';
 import 'package:go_router/go_router.dart';
@@ -475,7 +476,8 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
   }
 
   void _submitHousehold() async {
-    // Validate that all required fields are filled
+    final onboardingComplete = ref.watch(authProvider).onboardingComplete;
+
     if (_hasOtherPets == null ||
         _hasChildren == null ||
         _comfortableWithShyPet == null) {
@@ -510,22 +512,40 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
           _okayWithSpecialNeeds ?? false,
         );
 
-    context.push('/onboarding/profile-loading');
+    if (!onboardingComplete) {
+      context.push('/onboarding/profile-loading');
 
-    final success =
-        await ref.read(userProfileProvider.notifier).submitProfile();
+      final success =
+          await ref.read(userProfileProvider.notifier).submitProfile();
 
-    if (context.canPop()) context.pop();
+      if (context.canPop()) context.pop();
 
-    if (success) {
-      context.go('/home');
+      if (success) {
+        context.go('/home');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to save profile. Please try again.'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to save profile. Please try again.'),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
+      NotifierHelper.showLoadingToast(context, 'Updating Profile');
+
+      final success =
+          await ref.read(userProfileProvider.notifier).submitProfile();
+
+      if (success) {
+        NotifierHelper.showSuccessToast(context, 'Profile Updated');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to save profile. Please try again.'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
     }
   }
 }

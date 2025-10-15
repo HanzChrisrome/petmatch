@@ -84,6 +84,7 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
 
   Widget _buildPetDetails(Pet pet, int petIndex) {
     final imageUrls = pet.fullImageUrls;
+    print('Image Url: $imageUrls');
 
     final imagePageController = _imagePageControllers[petIndex]!;
     final currentImageIndex = _currentImageIndices[petIndex] ?? 0;

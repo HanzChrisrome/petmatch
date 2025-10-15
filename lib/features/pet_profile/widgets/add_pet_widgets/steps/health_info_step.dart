@@ -57,22 +57,8 @@ class _HealthInfoStepState extends ConsumerState<HealthInfoStep> {
             isSelected: widget.isSpayedNeutered,
             onChanged: (value) => widget.onSpayedNeuteredChanged(value),
           ),
-          const SizedBox(height: 24),
 
-          // Health Notes
-          const BuildFieldLabel(
-            text: 'Health Notes',
-            emoji: '📋',
-            subtitle: 'Allergies, conditions, medications',
-          ),
           const SizedBox(height: 8),
-          ThemedTextField(
-            controller: widget.healthNotesController,
-            label: 'e.g., Allergic to chicken, takes arthritis medication',
-            prefixIcon: Icons.notes,
-            maxLines: 3,
-          ),
-          const SizedBox(height: 24),
 
           // Special Needs
           const BuildFieldLabel(text: 'Special Needs?', emoji: '♿'),

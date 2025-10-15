@@ -38,10 +38,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
       if (!isAuth) {
         context.go('/get-started');
-      } else if (authState.onboardingComplete == false) {
-        context.go('/onboarding/pet-preference');
       } else {
-        context.go('/home');
+        if (authState.userProfile?.role == 'admin') {
+          context.go('/admin/pet-management');
+        } else {
+          if (authState.onboardingComplete == false) {
+            context.go('/onboarding/pet-preference');
+          } else {
+            context.go('/home');
+          }
+        }
       }
     }
   }

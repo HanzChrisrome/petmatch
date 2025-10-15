@@ -2,15 +2,19 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:petmatch/core/model/pet_model.dart';
 import 'package:petmatch/features/home/provider/pets_provider/pet_provider.dart';
 import 'package:petmatch/features/pet_profile/widgets/add_pet_widgets/steps/activity_info_step.dart';
 import 'package:petmatch/features/pet_profile/widgets/add_pet_widgets/steps/basic_info_step.dart';
 import 'package:petmatch/features/pet_profile/widgets/add_pet_widgets/steps/behavior_info_step.dart';
 import 'package:petmatch/features/pet_profile/widgets/add_pet_widgets/steps/health_info_step.dart';
 import 'package:petmatch/features/pet_profile/widgets/add_pet_widgets/steps/temperament_info_step.dart';
+import 'package:uuid/uuid.dart';
 
 class AddPetScreen extends ConsumerStatefulWidget {
-  const AddPetScreen({super.key});
+  final Pet? petToEdit;
+
+  const AddPetScreen({super.key, this.petToEdit});
 
   @override
   ConsumerState<AddPetScreen> createState() => _AddPetScreenState();
@@ -25,12 +29,17 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
   // Image handling
   final List<File> _selectedImages = [];
   File? _thumbnailImage;
+  List<String> _existingImageUrls = [];
+  String? _existingThumbnailUrl;
+  final List<String> _deletedImagePaths = [];
 
   // Basic Information Controllers
   final TextEditingController _petNameController = TextEditingController();
   final TextEditingController _breedController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+
+  String? _petId;
 
   // Basic Information Values
   String? _selectedSpecies;
@@ -68,8 +77,71 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
   double _affectionLevel = 3.0;
   double _independence = 3.0;
   double _adaptability = 3.0;
-  String? _trainingLevel;
+  double _trainingDifficulty = 3.0; // 1: beginner ... 5: expert
   int? _groomingNeeds;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.petToEdit != null) {
+      _prefillFormData();
+    } else {
+      // Generate new UUID for new pet
+      _petId = const Uuid().v4();
+    }
+  }
+
+  void _prefillFormData() {
+    final pet = widget.petToEdit!;
+
+    // Basic Information
+    _petId = pet.id;
+    _petNameController.text = pet.name;
+    _breedController.text = pet.breed ?? '';
+    _ageController.text = pet.age?.toString() ?? '';
+    _descriptionController.text = pet.description ?? '';
+    _selectedSpecies = pet.species;
+    _selectedGender = pet.gender;
+    _selectedSize = pet.size;
+    _selectedStatus = pet.status;
+
+    // Existing images - use fullImageUrls to get complete Supabase URLs
+    _existingImageUrls = List.from(pet.fullImageUrls);
+    _existingThumbnailUrl = pet.thumbnailUrl;
+
+    // Health Information
+    _isVaccinationUpToDate = pet.vaccinations;
+    _isSpayedNeutered = pet.spayedNeutered;
+    _hasSpecialNeeds = pet.specialNeeds;
+    _groomingNeeds = pet.groomingNeeds;
+
+    // Behavior Information
+    _goodWithChildren = pet.goodWithChildren;
+    _goodWithDogs = pet.goodWithDogs;
+    _goodWithCats = pet.goodWithCats;
+    _houseTrained = pet.houseTrained;
+
+    // Activity Information
+    _energyLevel = pet.energyLevel?.toDouble() ?? 3.0;
+    _playfulness = pet.playfulness?.toDouble() ?? 3.0;
+    _dailyExerciseNeeds = pet.dailyExercise;
+
+    // Temperament Information
+    _selectedTraits.clear();
+    _selectedTraits.addAll(pet.temperamentTraits);
+    _affectionLevel = pet.affectionLevel?.toDouble() ?? 3.0;
+    _independence = pet.independence?.toDouble() ?? 3.0;
+    _adaptability = pet.adaptability?.toDouble() ?? 3.0;
+    _trainingDifficulty = pet.trainingDifficulty?.toDouble() ?? 2.0;
+  }
+
+  String? _mapTrainingDifficultyToLevel(int difficulty) {
+    if (difficulty <= 1) return 'beginner';
+    if (difficulty == 2) return 'novice';
+    if (difficulty == 3) return 'intermediate';
+    if (difficulty == 4) return 'advanced';
+    return 'expert';
+  }
 
   @override
   void dispose() {
@@ -91,39 +163,76 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
     }
 
     try {
-      await ref.read(petsProvider.notifier).savePet(
-            petName: _petNameController.text.trim(),
-            species: _selectedSpecies!,
-            breed: _breedController.text.trim(),
-            age: int.tryParse(_ageController.text.trim()) ?? 0,
-            gender: _selectedGender!,
-            size: _selectedSize!,
-            status: _selectedStatus ?? 'available',
-            description: _descriptionController.text.trim(),
-            thumbnailImage: _thumbnailImage,
-            selectedImages: _selectedImages,
-            isVaccinationUpToDate: _isVaccinationUpToDate,
-            isSpayedNeutered: _isSpayedNeutered,
-            healthNotes: _healthNotesController.text.trim(),
-            hasSpecialNeeds: _hasSpecialNeeds,
-            specialNeedsDescription: _hasSpecialNeeds == true
-                ? _specialNeedsDescController.text.trim()
-                : '',
-            groomingNeeds: _groomingNeeds,
-            goodWithChildren: _goodWithChildren,
-            goodWithDogs: _goodWithDogs,
-            goodWithCats: _goodWithCats,
-            houseTrained: _houseTrained,
-            behavioralNotes: _behavioralNotesController.text.trim(),
-            energyLevel: _energyLevel,
-            playfulness: _playfulness,
-            dailyExerciseNeeds: _dailyExerciseNeeds,
-            selectedTraits: _selectedTraits,
-            affectionLevel: _affectionLevel,
-            independence: _independence,
-            adaptability: _adaptability,
-            trainingLevel: _trainingLevel,
-          );
+      final isEditing = widget.petToEdit != null;
+
+      if (isEditing) {
+        // Update existing pet
+        await ref.read(petsProvider.notifier).updatePet(
+              petId: widget.petToEdit!.id,
+              petName: _petNameController.text.trim(),
+              species: _selectedSpecies!,
+              breed: _breedController.text.trim(),
+              age: int.tryParse(_ageController.text.trim()) ?? 0,
+              gender: _selectedGender!,
+              size: _selectedSize!,
+              status: _selectedStatus ?? 'available',
+              description: _descriptionController.text.trim(),
+              thumbnailImage: _thumbnailImage,
+              selectedImages: _selectedImages,
+              deletedImagePaths: _deletedImagePaths,
+              isVaccinationUpToDate: _isVaccinationUpToDate,
+              isSpayedNeutered: _isSpayedNeutered,
+              healthNotes: _healthNotesController.text.trim(),
+              hasSpecialNeeds: _hasSpecialNeeds,
+              specialNeedsDescription: _hasSpecialNeeds == true
+                  ? _specialNeedsDescController.text.trim()
+                  : '',
+              groomingNeeds: _groomingNeeds,
+              goodWithChildren: _goodWithChildren,
+              goodWithDogs: _goodWithDogs,
+              goodWithCats: _goodWithCats,
+              houseTrained: _houseTrained,
+              behavioralNotes: _behavioralNotesController.text.trim(),
+              energyLevel: _energyLevel,
+              playfulness: _playfulness,
+              dailyExerciseNeeds: _dailyExerciseNeeds,
+              selectedTraits: _selectedTraits,
+              affectionLevel: _affectionLevel,
+              independence: _independence,
+              adaptability: _adaptability,
+              trainingDifficulty: _trainingDifficulty.toInt(),
+              existingThumbnailPath: _existingThumbnailUrl,
+            );
+      } else {
+        // Add new pet
+        await ref.read(petsProvider.notifier).savePet(
+              petName: _petNameController.text.trim(),
+              species: _selectedSpecies!,
+              breed: _breedController.text.trim(),
+              age: int.tryParse(_ageController.text.trim()) ?? 0,
+              gender: _selectedGender!,
+              size: _selectedSize!,
+              status: _selectedStatus ?? 'available',
+              thumbnailImage: _thumbnailImage,
+              selectedImages: _selectedImages,
+              isVaccinationUpToDate: _isVaccinationUpToDate,
+              isSpayedNeutered: _isSpayedNeutered,
+              healthNotes: _healthNotesController.text.trim(),
+              hasSpecialNeeds: _hasSpecialNeeds,
+              groomingNeeds: _groomingNeeds,
+              goodWithChildren: _goodWithChildren,
+              goodWithDogs: _goodWithDogs,
+              goodWithCats: _goodWithCats,
+              houseTrained: _houseTrained,
+              energyLevel: _energyLevel,
+              playfulness: _playfulness,
+              dailyExerciseNeeds: _dailyExerciseNeeds,
+              affectionLevel: _affectionLevel,
+              independence: _independence,
+              adaptability: _adaptability,
+              trainingDifficulty: _trainingDifficulty.toInt(),
+            );
+      }
 
       final errorMessage = ref.read(petsProvider).errorMessage;
       if (errorMessage != null) {
@@ -140,7 +249,9 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    '🎉 ${_petNameController.text} has been added successfully!',
+                    isEditing
+                        ? '✅ ${_petNameController.text} has been updated successfully!'
+                        : '🎉 ${_petNameController.text} has been added successfully!',
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -152,6 +263,8 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
+
+        Navigator.pop(context, true);
       }
     } catch (e) {
       _showErrorSnackBar('Error saving pet: $e');
@@ -209,7 +322,7 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Add New Pet',
+          widget.petToEdit != null ? 'Edit Pet' : 'Add New Pet',
           style: GoogleFonts.poppins(
             color: Colors.black,
             fontSize: 20,
@@ -229,6 +342,7 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   BasicInfoStep(
+                    petId: _petId!,
                     petNameController: _petNameController,
                     breedController: _breedController,
                     ageController: _ageController,
@@ -249,6 +363,24 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
                       ..addAll(images)),
                     onThumbnailChanged: (image) =>
                         setState(() => _thumbnailImage = image),
+                    existingImageUrls: _existingImageUrls,
+                    existingThumbnailUrl: _existingThumbnailUrl,
+                    onExistingImagesChanged: (updatedUrls) {
+                      setState(() {
+                        final deleted = _existingImageUrls
+                            .where((url) => !updatedUrls.contains(url))
+                            .toList();
+
+                        _deletedImagePaths.addAll(deleted);
+                        _existingImageUrls = updatedUrls;
+                      });
+                    },
+                    onExistingThumbnailChanged: (url) {
+                      setState(() {
+                        _existingThumbnailUrl = url;
+                        _thumbnailImage = null;
+                      });
+                    },
                   ),
                   HealthInfoStep(
                     healthNotesController: _healthNotesController,
@@ -297,7 +429,7 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
                     affectionLevel: _affectionLevel,
                     independence: _independence,
                     adaptability: _adaptability,
-                    trainingLevel: _trainingLevel,
+                    trainingDifficulty: _trainingDifficulty,
                     onSelectedTraitsChanged: (traits) =>
                         setState(() => _selectedTraits
                           ..clear()
@@ -308,8 +440,8 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
                         setState(() => _independence = value),
                     onAdaptabilityChanged: (value) =>
                         setState(() => _adaptability = value),
-                    onTrainingLevelChanged: (value) =>
-                        setState(() => _trainingLevel = value),
+                    onTrainingDifficultyChanged: (value) =>
+                        setState(() => _trainingDifficulty = value),
                   ),
                 ],
               ),
@@ -470,31 +602,6 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  // Helper Widgets
-  Widget _buildSectionHeader(String title, String subtitle) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: GoogleFonts.poppins(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          subtitle,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            color: Colors.grey[600],
-          ),
-        ),
-      ],
     );
   }
 }

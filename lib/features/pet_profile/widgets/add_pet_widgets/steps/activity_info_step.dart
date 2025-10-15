@@ -135,19 +135,19 @@ class _ActivityInfoStepState extends ConsumerState<ActivityInfoStep> {
       {
         'label': 'Low',
         'emoji': '🎈',
-        'value': 'low',
+        'value': 'Low',
         'color': const Color(0xFF81C784)
       },
       {
         'label': 'Moderate',
         'emoji': '🎾',
-        'value': 'moderate',
+        'value': 'Moderate',
         'color': const Color(0xFFFFB74D)
       },
       {
         'label': 'High',
         'emoji': '🏃‍♂️',
-        'value': 'high',
+        'value': 'High',
         'color': const Color(0xFFE57373)
       },
     ];

@@ -19,7 +19,6 @@ class PetNotifier extends Notifier<PetState> {
     return PetState();
   }
 
-  /// 🔹 Fetch first batch (initial load)
   Future<void> fetchInitialPets() async {
     try {
       state = state.copyWith(
@@ -98,7 +97,6 @@ class PetNotifier extends Notifier<PetState> {
     required String gender,
     required String size,
     required String status,
-    required String description,
     required File? thumbnailImage,
     required List<File> selectedImages,
     // Health Information
@@ -106,24 +104,21 @@ class PetNotifier extends Notifier<PetState> {
     required bool? isSpayedNeutered,
     required String healthNotes,
     required bool? hasSpecialNeeds,
-    required String specialNeedsDescription,
     required int? groomingNeeds,
     // Behavior Information
     required bool? goodWithChildren,
     required bool? goodWithDogs,
     required bool? goodWithCats,
     required bool? houseTrained,
-    required String behavioralNotes,
     // Activity Information
     required double energyLevel,
     required double playfulness,
     required String? dailyExerciseNeeds,
     // Temperament Information
-    required List<String> selectedTraits,
     required double affectionLevel,
     required double independence,
     required double adaptability,
-    required String? trainingLevel,
+    required int? trainingDifficulty,
   }) async {
     try {
       state = state.copyWith(isLoading: true, errorMessage: null);
@@ -141,34 +136,29 @@ class PetNotifier extends Notifier<PetState> {
         gender: gender,
         size: size,
         status: status,
-        description: description,
         thumbnailImage: thumbnailImage,
         selectedImages: selectedImages,
         isVaccinationUpToDate: isVaccinationUpToDate,
         isSpayedNeutered: isSpayedNeutered,
         healthNotes: healthNotes,
         hasSpecialNeeds: hasSpecialNeeds,
-        specialNeedsDescription: specialNeedsDescription,
         groomingNeeds: groomingNeeds,
         goodWithChildren: goodWithChildren,
         goodWithDogs: goodWithDogs,
         goodWithCats: goodWithCats,
         houseTrained: houseTrained,
-        behavioralNotes: behavioralNotes,
         energyLevel: energyLevel,
         playfulness: playfulness,
         dailyExerciseNeeds: dailyExerciseNeeds,
-        selectedTraits: selectedTraits,
         affectionLevel: affectionLevel,
         independence: independence,
         adaptability: adaptability,
-        trainingLevel: trainingLevel,
+        trainingDifficulty: trainingDifficulty,
       );
 
       print('✅ Pet saved successfully!');
-      print('🔄 Refreshing pet list...');
 
-      await fetchInitialPets(); // 👈 reload first page after saving
+      // await fetchInitialPets();
       state = state.copyWith(isLoading: false);
     } catch (e) {
       state = state.copyWith(
@@ -237,6 +227,99 @@ class PetNotifier extends Notifier<PetState> {
     filterByCategory(state.selectedCategory ?? 'All');
   }
 
+  /// 🔹 Update existing pet
+  Future<void> updatePet({
+    required String petId,
+    required String petName,
+    required String species,
+    required String breed,
+    required int age,
+    required String gender,
+    required String size,
+    required String status,
+    required String description,
+    required File? thumbnailImage,
+    String? existingThumbnailPath,
+    required List<File> selectedImages,
+    required List<String> deletedImagePaths,
+    // Health Information
+    required bool? isVaccinationUpToDate,
+    required bool? isSpayedNeutered,
+    required String healthNotes,
+    required bool? hasSpecialNeeds,
+    required String specialNeedsDescription,
+    required int? groomingNeeds,
+    // Behavior Information
+    required bool? goodWithChildren,
+    required bool? goodWithDogs,
+    required bool? goodWithCats,
+    required bool? houseTrained,
+    required String behavioralNotes,
+    // Activity Information
+    required double energyLevel,
+    required double playfulness,
+    required String? dailyExerciseNeeds,
+    // Temperament Information
+    required List<String> selectedTraits,
+    required double affectionLevel,
+    required double independence,
+    required double adaptability,
+    required int? trainingDifficulty,
+  }) async {
+    try {
+      state = state.copyWith(isLoading: true, errorMessage: null);
+      print('✏️ Updating pet: $petName (ID: $petId)');
+
+      await _repository.updatePet(
+        petId: petId,
+        petName: petName,
+        species: species,
+        breed: breed,
+        age: age,
+        gender: gender,
+        size: size,
+        status: status,
+        description: description,
+        thumbnailImage: thumbnailImage,
+        existingThumbnailPath: existingThumbnailPath,
+        selectedImages: selectedImages,
+        deletedImagePaths: deletedImagePaths,
+        isVaccinationUpToDate: isVaccinationUpToDate,
+        isSpayedNeutered: isSpayedNeutered,
+        healthNotes: healthNotes,
+        hasSpecialNeeds: hasSpecialNeeds,
+        specialNeedsDescription: specialNeedsDescription,
+        groomingNeeds: groomingNeeds,
+        goodWithChildren: goodWithChildren,
+        goodWithDogs: goodWithDogs,
+        goodWithCats: goodWithCats,
+        houseTrained: houseTrained,
+        behavioralNotes: behavioralNotes,
+        energyLevel: energyLevel,
+        playfulness: playfulness,
+        dailyExerciseNeeds: dailyExerciseNeeds,
+        selectedTraits: selectedTraits,
+        affectionLevel: affectionLevel,
+        independence: independence,
+        adaptability: adaptability,
+        trainingDifficulty: trainingDifficulty,
+      );
+
+      print('✅ Pet updated successfully!');
+      print('🔄 Refreshing pet list...');
+
+      await fetchInitialPets();
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Failed to update pet: $e',
+      );
+      print('❌ Error updating pet: $e');
+      rethrow;
+    }
+  }
+
   /// 🔹 Refresh pets (reload first page)
   Future<void> refresh() async {
     print('🔄 Refreshing pets...');
@@ -249,6 +332,42 @@ class PetNotifier extends Notifier<PetState> {
       searchPets(query);
     } else if (category != 'All') {
       filterByCategory(category);
+    }
+  }
+
+  /// 🗑️ Delete pet
+  Future<void> deletePet(String petId) async {
+    try {
+      state = state.copyWith(isLoading: true, errorMessage: null);
+      print('🗑️ Deleting pet with ID: $petId');
+
+      await _repository.deletePet(petId);
+
+      print('✅ Pet deleted successfully!');
+      print('🔄 Refreshing pet list...');
+
+      await fetchInitialPets();
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Failed to delete pet: $e',
+      );
+      print('❌ Error deleting pet: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> deletePetImage(
+      {required String petId, required String imageUrl}) async {
+    try {
+      print('🗑️ Deleting image for pet ID: $petId, Image URL: $imageUrl');
+
+      await _repository.deletePetImage(petId: petId, imageUrl: imageUrl);
+      await fetchInitialPets();
+    } catch (e) {
+      print('❌ Error deleting pet image: $e');
+      rethrow;
     }
   }
 }

@@ -237,7 +237,7 @@ class _ProfileDashboardState extends ConsumerState<ProfileDashboard> {
                       title: 'Household Setup',
                       value: _getHouseholdSummary(profile),
                       color: const Color.fromARGB(255, 255, 206, 43),
-                      onTap: () => context.push('/onboarding/household-setup'),
+                      onTap: () => context.push('/onboarding/household'),
                     ),
                   ],
                 ),
@@ -271,7 +271,7 @@ class _ProfileDashboardState extends ConsumerState<ProfileDashboard> {
           ),
         ),
       ),
-      bottomNavigationBar: const CustomBottomNav(currentIndex: 4),
+      bottomNavigationBar: const CustomBottomNav(currentIndex: 3),
     );
   }
 
@@ -429,8 +429,9 @@ class _ProfileDashboardState extends ConsumerState<ProfileDashboard> {
     if (profile.hasChildren == true) items.add('Has children');
     if (profile.hasOtherPets == true) items.add('Has pets');
     if (profile.comfortableWithShyPet == true) items.add('OK with shy pets');
-    if (profile.financialReady == true) items.add('Financially ready');
-    if (profile.hadPetBefore == true) items.add('Pet experience');
+    if (profile.okayWithSpecialNeeds == true) {
+      items.add('OK with special needs');
+    }
 
     if (items.isEmpty) return 'Not set';
     if (items.length == 1) return items.first;

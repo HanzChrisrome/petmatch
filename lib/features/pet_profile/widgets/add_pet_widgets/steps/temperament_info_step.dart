@@ -8,12 +8,12 @@ class TemperamentInfoStep extends ConsumerStatefulWidget {
   final double affectionLevel;
   final double independence;
   final double adaptability;
-  final String? trainingLevel;
+  final double trainingDifficulty;
   final Function(List<String>) onSelectedTraitsChanged;
   final Function(double) onAffectionLevelChanged;
   final Function(double) onIndependenceChanged;
   final Function(double) onAdaptabilityChanged;
-  final Function(String?) onTrainingLevelChanged;
+  final Function(double) onTrainingDifficultyChanged;
 
   const TemperamentInfoStep({
     super.key,
@@ -21,12 +21,12 @@ class TemperamentInfoStep extends ConsumerStatefulWidget {
     required this.affectionLevel,
     required this.independence,
     required this.adaptability,
-    required this.trainingLevel,
+    required this.trainingDifficulty,
     required this.onSelectedTraitsChanged,
     required this.onAffectionLevelChanged,
     required this.onIndependenceChanged,
     required this.onAdaptabilityChanged,
-    required this.onTrainingLevelChanged,
+    required this.onTrainingDifficultyChanged,
   });
 
   @override
@@ -42,15 +42,6 @@ class _TemperamentInfoStepState extends ConsumerState<TemperamentInfoStep> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const BuildFieldLabel(
-            text: 'Personality Traits',
-            emoji: '🌟',
-            subtitle: 'Select up to 3',
-          ),
-          const SizedBox(height: 12),
-          _buildTraitChips(),
-          const SizedBox(height: 24),
-
           // Affection Level
           const BuildFieldLabel(
             text: 'Affection Level',
@@ -84,7 +75,7 @@ class _TemperamentInfoStepState extends ConsumerState<TemperamentInfoStep> {
             emoji: '🎯',
           ),
           const SizedBox(height: 12),
-          _buildTrainingCards(),
+          _buildTrainingSlider(),
         ],
       ),
     );
@@ -276,63 +267,44 @@ class _TemperamentInfoStepState extends ConsumerState<TemperamentInfoStep> {
     );
   }
 
-  Widget _buildTrainingCards() {
-    final levels = [
-      {
-        'label': 'Beginner',
-        'emoji': '🌱',
-        'value': 'beginner',
-        'color': const Color(0xFF81C784)
-      },
-      {
-        'label': 'Intermediate',
-        'emoji': '🎯',
-        'value': 'intermediate',
-        'color': const Color(0xFF64B5F6)
-      },
-      {
-        'label': 'Advanced',
-        'emoji': '🏆',
-        'value': 'advanced',
-        'color': const Color(0xFFFFB74D)
-      },
+  Widget _buildTrainingSlider() {
+    final labels = [
+      'Beginner',
+      'Novice',
+      'Intermediate',
+      'Advanced',
+      'Expert',
     ];
 
     return Column(
-      children: levels.map((level) {
-        final isSelected = widget.trainingLevel == level['value'];
-        return GestureDetector(
-          onTap: () => widget.onTrainingLevelChanged(level['value'] as String),
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isSelected ? (level['color'] as Color) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color:
-                    isSelected ? (level['color'] as Color) : Colors.grey[300]!,
-                width: isSelected ? 2 : 1.5,
-              ),
-            ),
-            child: Row(
-              children: [
-                Text(level['emoji'] as String,
-                    style: const TextStyle(fontSize: 24)),
-                const SizedBox(width: 12),
-                Text(
-                  level['label'] as String,
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected ? Colors.white : Colors.black87,
-                  ),
-                ),
-              ],
-            ),
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            activeTrackColor: const Color(0xFF81C784),
+            inactiveTrackColor: Colors.grey[300],
+            thumbColor: const Color(0xFF81C784),
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
           ),
-        );
-      }).toList(),
+          child: Slider(
+            value: widget.trainingDifficulty,
+            min: 1,
+            max: 5,
+            divisions: 4,
+            label: labels[widget.trainingDifficulty.toInt() - 1],
+            onChanged: (value) => widget.onTrainingDifficultyChanged(value),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          labels[widget.trainingDifficulty.toInt() - 1],
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF81C784),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -111,11 +111,14 @@ class AuthNotifier extends Notifier<UserAuthState> {
           lockoutTime: null,
         );
 
-        // Check if user needs to complete onboarding
-        if (!state.onboardingComplete) {
-          context.go('/onboarding');
+        if (state.userProfile?.role == 'admin') {
+          context.go('/admin/pet-management');
         } else {
-          context.go('/home');
+          if (!state.onboardingComplete) {
+            context.go('/onboarding');
+          } else {
+            context.go('/home');
+          }
         }
       }
     } catch (e) {

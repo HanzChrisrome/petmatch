@@ -6,9 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:petmatch/features/home/provider/pets_provider/pet_provider.dart';
 import 'package:petmatch/widgets/style/themed_textfield.dart';
 
 class BasicInfoStep extends ConsumerStatefulWidget {
+  final String petId;
   final TextEditingController petNameController;
   final TextEditingController breedController;
   final TextEditingController ageController;
@@ -23,9 +26,15 @@ class BasicInfoStep extends ConsumerStatefulWidget {
   final File? thumbnailImage;
   final Function(List<File>) onImagesChanged;
   final Function(File?) onThumbnailChanged;
+  // NEW: Existing images from database (URLs)
+  final List<String> existingImageUrls;
+  final String? existingThumbnailUrl;
+  final Function(List<String>)? onExistingImagesChanged;
+  final Function(String?)? onExistingThumbnailChanged;
 
   const BasicInfoStep({
     super.key,
+    required this.petId,
     required this.petNameController,
     required this.breedController,
     required this.ageController,
@@ -40,6 +49,10 @@ class BasicInfoStep extends ConsumerStatefulWidget {
     required this.thumbnailImage,
     required this.onImagesChanged,
     required this.onThumbnailChanged,
+    this.existingImageUrls = const [],
+    this.existingThumbnailUrl,
+    this.onExistingImagesChanged,
+    this.onExistingThumbnailChanged,
   });
 
   @override
@@ -48,6 +61,31 @@ class BasicInfoStep extends ConsumerStatefulWidget {
 
 class _BasicInfoStepState extends ConsumerState<BasicInfoStep> {
   final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImageFromCamera({bool asThumbnail = false}) async {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+      if (image != null) {
+        final file = File(image.path);
+        if (asThumbnail) {
+          // Set the thumbnail file but do NOT add it to the regular
+          // photos list. Thumbnail is stored separately and should not be
+          // duplicated in the gallery photos collection.
+          widget.onThumbnailChanged(file);
+        } else {
+          final updatedImages = List<File>.from(widget.selectedImages);
+          updatedImages.add(file);
+          widget.onImagesChanged(updatedImages);
+
+          if (widget.thumbnailImage == null) {
+            widget.onThumbnailChanged(file);
+          }
+        }
+      }
+    } catch (e) {
+      print('Error picking camera image: $e');
+    }
+  }
 
   // --------------------------------
   // Functions to handle image picking, setting thumbnail, and removing images
@@ -92,15 +130,80 @@ class _BasicInfoStepState extends ConsumerState<BasicInfoStep> {
       if (image != null) {
         final newThumbnail = File(image.path);
         widget.onThumbnailChanged(newThumbnail);
-
-        if (!widget.selectedImages.contains(newThumbnail)) {
-          final updatedImages = List<File>.from(widget.selectedImages);
-          updatedImages.insert(0, newThumbnail);
-          widget.onImagesChanged(updatedImages);
-        }
       }
     } catch (e) {
       print('Error picking thumbnail: $e');
+    }
+  }
+
+  Future<void> _removeExistingImage(String url) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Image?'),
+        content: const Text(
+            'Are you sure you want to permanently delete this image from storage?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      // Show loading indicator
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Deleting image...'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+
+      // Delete from Supabase storage and database
+      final petNotifier = ref.read(petsProvider.notifier);
+      await petNotifier.deletePetImage(
+        petId: widget.petId,
+        imageUrl: url,
+      );
+
+      if (mounted) {
+        // Remove from local state
+        if (widget.onExistingImagesChanged != null) {
+          final updatedUrls = List<String>.from(widget.existingImageUrls);
+          updatedUrls.remove(url);
+          widget.onExistingImagesChanged!(updatedUrls);
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Image deleted successfully'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ Error deleting image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete image: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     }
   }
 
@@ -197,16 +300,6 @@ class _BasicInfoStepState extends ConsumerState<BasicInfoStep> {
           const SizedBox(height: 8),
           _buildSizeChips(),
           const SizedBox(height: 20),
-
-          // Description
-          _buildFieldLabel('Description', '📝'),
-          const SizedBox(height: 8),
-          ThemedTextField(
-            controller: widget.descriptionController,
-            label: 'Tell us more about this pet...',
-            prefixIcon: Icons.description,
-            maxLines: 4,
-          ),
         ],
       ),
     );
@@ -273,11 +366,11 @@ class _BasicInfoStepState extends ConsumerState<BasicInfoStep> {
         border: Border.all(color: Colors.grey[300]!, width: 1.5),
       ),
       child: DropdownButtonFormField<String>(
-        value: widget.selectedGender,
+        value: widget.selectedGender?.toLowerCase().trim(),
         decoration: const InputDecoration(
           prefixIcon: Icon(Icons.wc, color: Color(0xFFFF9800)),
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           hintText: 'Select',
         ),
         validator: (value) => value == null ? 'Required' : null,
@@ -336,150 +429,421 @@ class _BasicInfoStepState extends ConsumerState<BasicInfoStep> {
   }
 
   Widget _buildImageUploadSection() {
+    final hasAnyImages =
+        widget.selectedImages.isNotEmpty || widget.existingImageUrls.isNotEmpty;
+
+    // Determine the current thumbnail to display
+    final thumbnailToShow = widget.thumbnailImage != null
+        ? null // Will use File
+        : widget.existingThumbnailUrl; // Fall back to URL
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildFieldLabel('Pet Photos', '📸', isRequired: true),
         const SizedBox(height: 12),
-        if (widget.selectedImages.isEmpty)
-          GestureDetector(
-            onTap: _pickImages,
-            child: Container(
-              width: double.infinity,
-              height: 200,
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                    color: Colors.grey[300]!,
-                    width: 2,
-                    style: BorderStyle.solid),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add_photo_alternate,
-                      size: 64, color: Colors.grey[400]),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Tap to add photos',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
-                    ),
+        if (!hasAnyImages)
+          Container(
+            width: double.infinity,
+            height: 200,
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                  color: Colors.grey[300]!, width: 2, style: BorderStyle.solid),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add_photo_alternate,
+                    size: 64, color: Colors.grey[400]),
+                const SizedBox(height: 12),
+                Text(
+                  'No photos yet',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () => _pickThumbnail(),
+                      icon: const Icon(Icons.photo),
+                      label:
+                          Text('Pick Thumbnail', style: GoogleFonts.poppins()),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepOrange),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      onPressed: () => _pickImages(),
+                      icon: const Icon(Icons.photo_library),
+                      label: Text('Add Photos', style: GoogleFonts.poppins()),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey[700]),
+                    ),
+                  ],
+                ),
+              ],
             ),
           )
         else
           Column(
             children: [
+              // Thumbnail Preview
               Container(
                 height: 200,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
+                  color: Colors.grey[200],
                   image: widget.thumbnailImage != null
                       ? DecorationImage(
                           image: FileImage(widget.thumbnailImage!),
                           fit: BoxFit.cover,
                         )
-                      : null,
+                      : (thumbnailToShow != null
+                          ? DecorationImage(
+                              image:
+                                  CachedNetworkImageProvider(thumbnailToShow),
+                              fit: BoxFit.cover,
+                            )
+                          : null),
                 ),
-                child: widget.thumbnailImage != null
-                    ? Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withOpacity(0.5),
-                            ],
-                          ),
-                        ),
-                        child: const Align(
-                          alignment: Alignment.bottomLeft,
-                          child: Padding(
-                            padding: EdgeInsets.all(12),
-                            child: Chip(
-                              label: Text('Thumbnail',
-                                  style: TextStyle(color: Colors.white)),
-                              backgroundColor: Color(0xFFFF9800),
+                child:
+                    (widget.thumbnailImage != null || thumbnailToShow != null)
+                        ? Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withOpacity(0.5),
+                                ],
+                              ),
+                            ),
+                            child: const Align(
+                              alignment: Alignment.bottomLeft,
+                              child: Padding(
+                                padding: EdgeInsets.all(12),
+                                child: Chip(
+                                  label: Text('Thumbnail',
+                                      style: TextStyle(color: Colors.white)),
+                                  backgroundColor: Color(0xFFFF9800),
+                                ),
+                              ),
+                            ),
+                          )
+                        : Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.image,
+                                    size: 64, color: Colors.grey[400]),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'No thumbnail set',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      )
-                    : null,
               ),
               const SizedBox(height: 12),
               SizedBox(
                 height: 80,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  itemCount: widget.selectedImages.length + 1,
+                  itemCount: widget.existingImageUrls.length +
+                      widget.selectedImages.length +
+                      1,
                   itemBuilder: (context, index) {
-                    if (index == widget.selectedImages.length) {
-                      return GestureDetector(
-                        onTap: _pickImages,
-                        child: Container(
-                          width: 80,
-                          margin: const EdgeInsets.only(right: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey[400]!),
-                          ),
-                          child: Icon(Icons.add,
-                              size: 32, color: Colors.grey[600]),
+                    final totalExisting = widget.existingImageUrls.length;
+                    final totalNew = widget.selectedImages.length;
+                    final totalImages = totalExisting + totalNew;
+
+                    // Add button
+                    if (index == totalImages) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Row(
+                          children: [
+                            // Add Photos Button
+                            GestureDetector(
+                              onTap: _pickImages,
+                              child: Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                      color: Colors.grey[400]!, width: 2),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.add,
+                                        size: 28, color: Colors.grey[600]),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Add',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 10,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Camera buttons column
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                // Camera for regular photo
+                                SizedBox(
+                                  height: 36,
+                                  child: ElevatedButton.icon(
+                                    onPressed: () => _pickImageFromCamera(
+                                        asThumbnail: false),
+                                    icon:
+                                        const Icon(Icons.camera_alt, size: 14),
+                                    label: Text('Photo',
+                                        style:
+                                            GoogleFonts.poppins(fontSize: 11)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.grey[700],
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 8),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                // Camera for thumbnail
+                                SizedBox(
+                                  height: 36,
+                                  child: ElevatedButton.icon(
+                                    onPressed: () =>
+                                        _pickImageFromCamera(asThumbnail: true),
+                                    icon:
+                                        const Icon(Icons.camera_alt, size: 14),
+                                    label: Text('Thumb',
+                                        style:
+                                            GoogleFonts.poppins(fontSize: 11)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.deepOrange,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 8),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: 16), // Extra padding at end
+                          ],
                         ),
                       );
                     }
 
-                    final image = widget.selectedImages[index];
+                    // Display existing URL images
+                    if (index < totalExisting) {
+                      final url = widget.existingImageUrls[index];
+                      final isThumb = url == widget.existingThumbnailUrl &&
+                          widget.thumbnailImage == null;
+
+                      return Container(
+                        width: 80,
+                        margin: const EdgeInsets.only(right: 8),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                // Tap to view or set as thumbnail
+                              },
+                              child: Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isThumb
+                                        ? const Color(0xFFFF9800)
+                                        : Colors.grey[300]!,
+                                    width: isThumb ? 3 : 1,
+                                  ),
+                                ),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    if (widget.onExistingThumbnailChanged !=
+                                        null) {
+                                      widget.onExistingThumbnailChanged!(url);
+                                    }
+                                  },
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: CachedNetworkImage(
+                                      imageUrl: url,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) => Container(
+                                        color: Colors.grey[200],
+                                        child: const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                      ),
+                                      errorWidget: (context, url, error) =>
+                                          Container(
+                                        color: Colors.grey[200],
+                                        child: const Icon(Icons.error),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Badge to show this is existing/saved
+                            Positioned(
+                              bottom: 2,
+                              left: 2,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  'saved',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 9,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Remove button
+                            Positioned(
+                              top: -4,
+                              right: -4,
+                              child: GestureDetector(
+                                onTap: () => _removeExistingImage(url),
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.2),
+                                        blurRadius: 2,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(Icons.close,
+                                      size: 14, color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    // Display newly picked File images
+                    final fileIndex = index - totalExisting;
+                    final image = widget.selectedImages[fileIndex];
                     final isThumbnail = image == widget.thumbnailImage;
 
-                    return Stack(
-                      children: [
-                        GestureDetector(
-                          onTap: () => _setThumbnail(index),
-                          child: Container(
-                            width: 80,
-                            margin: const EdgeInsets.only(right: 8),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isThumbnail
-                                    ? const Color(0xFFFF9800)
-                                    : Colors.grey[300]!,
-                                width: isThumbnail ? 3 : 1,
-                              ),
-                              image: DecorationImage(
-                                image: FileImage(image),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 4,
-                          right: 12,
-                          child: GestureDetector(
-                            onTap: () => _removeImage(index),
+                    return Container(
+                      width: 80,
+                      margin: const EdgeInsets.only(right: 8),
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          GestureDetector(
+                            onTap: () => _setThumbnail(fileIndex),
                             child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isThumbnail
+                                      ? const Color(0xFFFF9800)
+                                      : Colors.grey[300]!,
+                                  width: isThumbnail ? 3 : 1,
+                                ),
+                                image: DecorationImage(
+                                  image: FileImage(image),
+                                  fit: BoxFit.cover,
+                                ),
                               ),
-                              child: const Icon(Icons.close,
-                                  size: 16, color: Colors.white),
                             ),
                           ),
-                        ),
-                      ],
+                          // Badge to show this is new
+                          Positioned(
+                            bottom: 2,
+                            left: 2,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                'new',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 9,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Remove button
+                          Positioned(
+                            top: -4,
+                            right: -4,
+                            child: GestureDetector(
+                              onTap: () => _removeImage(fileIndex),
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 2,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(Icons.close,
+                                    size: 14, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     );
                   },
                 ),

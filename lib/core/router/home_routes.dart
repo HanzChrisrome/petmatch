@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:petmatch/features/home/presentation/favorite_pets_page.dart';
 import 'package:petmatch/features/home/presentation/landing_dashboard.dart';
 import 'package:petmatch/features/home/presentation/match_dashboard.dart';
 import 'package:petmatch/features/home/presentation/profile_dashboard.dart';
@@ -34,22 +35,37 @@ final homeRoutes = [
       GoRoute(
         path: '/profile-screen',
         name: 'profile-screen',
-        builder: (context, state) => const ProfileDashboard(),
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: ProfileDashboard(),
+        ),
       ),
       GoRoute(
         path: '/match-dashboard',
         name: 'match-dashboard',
-        builder: (context, state) => const MatchDashboard(),
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: MatchDashboard(),
+        ),
       ),
       GoRoute(
         path: '/add-pet',
         name: 'add-pet',
-        builder: (context, state) => const AddPetScreen(),
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: AddPetScreen(),
+        ),
       ),
       GoRoute(
         path: '/edit-profile',
         name: 'edit-profile',
-        builder: (context, state) => const EditProfileScreen(),
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: EditProfileScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/favorite-pets',
+        name: 'favorite-pets',
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: FavoritePetsPage(),
+        ),
       ),
 
       // no use routes

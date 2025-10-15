@@ -9,11 +9,12 @@ import 'package:petmatch/features/user_profile/provider/user_profile_state.dart'
 
 /// Notifier to manage user profile state
 class UserProfileNotifier extends Notifier<UserProfileState> {
-  late final UserProfileRepository _repository;
+  final UserProfileRepository _repository;
+
+  UserProfileNotifier(this._repository);
 
   @override
   UserProfileState build() {
-    _repository = ref.read(userProfileRepositoryProvider);
     return const UserProfileState();
   }
 
@@ -297,8 +298,7 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
         hasOtherPets: householdInfo?['has_other_pets'] as bool?,
         existingPetsDescription:
             householdInfo?['existing_pets_description'] as String?,
-        comfortableWithShyPet:
-            householdInfo?['comfortable_with_shy_pet'] as bool?,
+        comfortableWithShyPet: householdInfo?['shy_pet_ok'] as bool?,
         financialReady: householdInfo?['financial_ready'] as bool?,
         hadPetBefore: householdInfo?['had_pet_before'] as bool?,
         okayWithSpecialNeeds:
@@ -421,5 +421,4 @@ final userProfileRepositoryProvider =
 
 final userProfileProvider =
     NotifierProvider<UserProfileNotifier, UserProfileState>(
-  UserProfileNotifier.new,
-);
+        () => UserProfileNotifier(UserProfileRepository()));

@@ -21,6 +21,7 @@ mixin _$UserAuthState {
   String? get userName => throw _privateConstructorUsedError;
   String? get userEmail => throw _privateConstructorUsedError;
   String? get userPassword => throw _privateConstructorUsedError;
+  String? get userType => throw _privateConstructorUsedError;
   int? get failedAttempts => throw _privateConstructorUsedError;
   DateTime? get lockoutTime => throw _privateConstructorUsedError;
   bool get isAuthenticated => throw _privateConstructorUsedError;
@@ -48,6 +49,7 @@ abstract class $UserAuthStateCopyWith<$Res> {
       String? userName,
       String? userEmail,
       String? userPassword,
+      String? userType,
       int? failedAttempts,
       DateTime? lockoutTime,
       bool isAuthenticated,
@@ -77,6 +79,7 @@ class _$UserAuthStateCopyWithImpl<$Res, $Val extends UserAuthState>
     Object? userName = freezed,
     Object? userEmail = freezed,
     Object? userPassword = freezed,
+    Object? userType = freezed,
     Object? failedAttempts = freezed,
     Object? lockoutTime = freezed,
     Object? isAuthenticated = null,
@@ -105,6 +108,10 @@ class _$UserAuthStateCopyWithImpl<$Res, $Val extends UserAuthState>
       userPassword: freezed == userPassword
           ? _value.userPassword
           : userPassword // ignore: cast_nullable_to_non_nullable
+              as String?,
+      userType: freezed == userType
+          ? _value.userType
+          : userType // ignore: cast_nullable_to_non_nullable
               as String?,
       failedAttempts: freezed == failedAttempts
           ? _value.failedAttempts
@@ -152,6 +159,7 @@ abstract class _$$UserAuthStateImplCopyWith<$Res>
       String? userName,
       String? userEmail,
       String? userPassword,
+      String? userType,
       int? failedAttempts,
       DateTime? lockoutTime,
       bool isAuthenticated,
@@ -179,6 +187,7 @@ class __$$UserAuthStateImplCopyWithImpl<$Res>
     Object? userName = freezed,
     Object? userEmail = freezed,
     Object? userPassword = freezed,
+    Object? userType = freezed,
     Object? failedAttempts = freezed,
     Object? lockoutTime = freezed,
     Object? isAuthenticated = null,
@@ -207,6 +216,10 @@ class __$$UserAuthStateImplCopyWithImpl<$Res>
       userPassword: freezed == userPassword
           ? _value.userPassword
           : userPassword // ignore: cast_nullable_to_non_nullable
+              as String?,
+      userType: freezed == userType
+          ? _value.userType
+          : userType // ignore: cast_nullable_to_non_nullable
               as String?,
       failedAttempts: freezed == failedAttempts
           ? _value.failedAttempts
@@ -249,6 +262,7 @@ class _$UserAuthStateImpl implements _UserAuthState {
       this.userName,
       this.userEmail,
       this.userPassword,
+      this.userType,
       this.failedAttempts,
       this.lockoutTime,
       this.isAuthenticated = false,
@@ -267,6 +281,8 @@ class _$UserAuthStateImpl implements _UserAuthState {
   final String? userEmail;
   @override
   final String? userPassword;
+  @override
+  final String? userType;
   @override
   final int? failedAttempts;
   @override
@@ -289,7 +305,7 @@ class _$UserAuthStateImpl implements _UserAuthState {
 
   @override
   String toString() {
-    return 'UserAuthState(userProfile: $userProfile, userId: $userId, userName: $userName, userEmail: $userEmail, userPassword: $userPassword, failedAttempts: $failedAttempts, lockoutTime: $lockoutTime, isAuthenticated: $isAuthenticated, isLoggingIn: $isLoggingIn, isRegistering: $isRegistering, isRequestingChange: $isRequestingChange, onboardingComplete: $onboardingComplete)';
+    return 'UserAuthState(userProfile: $userProfile, userId: $userId, userName: $userName, userEmail: $userEmail, userPassword: $userPassword, userType: $userType, failedAttempts: $failedAttempts, lockoutTime: $lockoutTime, isAuthenticated: $isAuthenticated, isLoggingIn: $isLoggingIn, isRegistering: $isRegistering, isRequestingChange: $isRequestingChange, onboardingComplete: $onboardingComplete)';
   }
 
   @override
@@ -306,6 +322,8 @@ class _$UserAuthStateImpl implements _UserAuthState {
                 other.userEmail == userEmail) &&
             (identical(other.userPassword, userPassword) ||
                 other.userPassword == userPassword) &&
+            (identical(other.userType, userType) ||
+                other.userType == userType) &&
             (identical(other.failedAttempts, failedAttempts) ||
                 other.failedAttempts == failedAttempts) &&
             (identical(other.lockoutTime, lockoutTime) ||
@@ -330,6 +348,7 @@ class _$UserAuthStateImpl implements _UserAuthState {
       userName,
       userEmail,
       userPassword,
+      userType,
       failedAttempts,
       lockoutTime,
       isAuthenticated,
@@ -354,6 +373,7 @@ abstract class _UserAuthState implements UserAuthState {
       final String? userName,
       final String? userEmail,
       final String? userPassword,
+      final String? userType,
       final int? failedAttempts,
       final DateTime? lockoutTime,
       final bool isAuthenticated,
@@ -372,6 +392,8 @@ abstract class _UserAuthState implements UserAuthState {
   String? get userEmail;
   @override
   String? get userPassword;
+  @override
+  String? get userType;
   @override
   int? get failedAttempts;
   @override

@@ -23,7 +23,8 @@ class _PetTemperamentInformationScreenState
   double _adaptability = 3.0;
 
   // Training level
-  String? _trainingLevel;
+  // Training difficulty: 1 = Beginner, 2 = Intermediate, 3 = Advanced
+  double _trainingDifficulty = 1.0;
 
   @override
   Widget build(BuildContext context) {
@@ -149,11 +150,11 @@ class _PetTemperamentInformationScreenState
 
                 SizedBox(height: isSmallScreen ? 28 : 32),
 
-                // Training/Obedience Level
+                // Training/Obedience Difficulty
                 _buildFieldLabel(
-                    "Training/Obedience Level", "🎓", isSmallScreen),
+                    "Training/Obedience Difficulty", "🎓", isSmallScreen),
                 const SizedBox(height: 12),
-                _buildTrainingCards(isSmallScreen),
+                _buildTrainingSlider(isSmallScreen),
 
                 SizedBox(height: isSmallScreen ? 32 : 40),
 
@@ -368,6 +369,7 @@ class _PetTemperamentInformationScreenState
     ];
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Emoji indicators
         Padding(
@@ -683,125 +685,113 @@ class _PetTemperamentInformationScreenState
     );
   }
 
-  Widget _buildTrainingCards(bool isSmall) {
-    final levels = [
-      {
-        'label': 'Beginner',
-        'emoji': '🌱',
-        'value': 'beginner',
-        'description': 'Little to no training',
-        'color': const Color(0xFF81C784),
-      },
-      {
-        'label': 'Intermediate',
-        'emoji': '🎯',
-        'value': 'intermediate',
-        'description': 'Basic commands learned',
-        'color': const Color(0xFF64B5F6),
-      },
-      {
-        'label': 'Advanced',
-        'emoji': '🏆',
-        'value': 'advanced',
-        'description': 'Well-trained & obedient',
-        'color': const Color(0xFFFFB74D),
-      },
-    ];
+  Widget _buildTrainingSlider(bool isSmall) {
+    final emojis = ['🐾', '🚶', '🎾', '🏆', '🎓'];
+    final labels = ['Beginner', 'Novice', 'Intermeiate', 'Advanced', 'Expert'];
 
     return Column(
-      children: levels.map((level) {
-        final isSelected = _trainingLevel == level['value'];
-        return GestureDetector(
-          onTap: () {
-            setState(() {
-              _trainingLevel = level['value'] as String;
-            });
-          },
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: EdgeInsets.all(isSmall ? 14 : 16),
-            decoration: BoxDecoration(
-              color: isSelected ? (level['color'] as Color) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color:
-                    isSelected ? (level['color'] as Color) : Colors.grey[300]!,
-                width: isSelected ? 2 : 1.5,
-              ),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: (level['color'] as Color).withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                  : [],
-            ),
-            child: Row(
-              children: [
-                // Emoji
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? Colors.white.withOpacity(0.3)
-                        : Colors.grey[100],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    level['emoji'] as String,
-                    style: TextStyle(fontSize: isSmall ? 26 : 30),
-                  ),
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(6, (index) {
+              final isActive = _adaptability.toInt() == index + 1;
+              return Opacity(
+                opacity: isActive ? 1.0 : 0.3,
+                child: Text(
+                  emojis[index],
+                  style: TextStyle(fontSize: isSmall ? 22 : 26),
                 ),
-                const SizedBox(width: 14),
-
-                // Text content
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        level['label'] as String,
-                        style: TextStyle(
-                          fontSize: isSmall ? 16 : 17,
-                          fontWeight: FontWeight.w700,
-                          color: isSelected ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        level['description'] as String,
-                        style: TextStyle(
-                          fontSize: isSmall ? 12 : 13,
-                          color: isSelected
-                              ? Colors.white.withOpacity(0.9)
-                              : Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Checkmark
-                if (isSelected)
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Icon(
-                      Icons.check,
-                      color: level['color'] as Color,
-                      size: 20,
-                    ),
-                  ),
+              );
+            }),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                const Color(0xFFB2DFDB).withOpacity(0.5),
+                const Color(0xFF26A69A).withOpacity(0.5),
               ],
             ),
+            borderRadius: BorderRadius.circular(12),
           ),
-        );
-      }).toList(),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: const Color(0xFF26A69A),
+              inactiveTrackColor: Colors.grey[300],
+              thumbColor: const Color(0xFF26A69A),
+              overlayColor: const Color(0xFF26A69A).withOpacity(0.2),
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
+            ),
+            child: Slider(
+              value: _trainingDifficulty,
+              min: 1,
+              max: 6,
+              divisions: 5,
+              label: _trainingDifficulty.toInt().toString(),
+              onChanged: (value) {
+                setState(() {
+                  _trainingDifficulty = value;
+                });
+              },
+            ),
+          ),
+        ),
+        // Container(
+        //   decoration: BoxDecoration(
+        //     gradient: LinearGradient(
+        //       colors: [
+        //         const Color(0xFFE1F5FE).withOpacity(0.6),
+        //         const Color(0xFFB3E5FC).withOpacity(0.6),
+        //       ],
+        //     ),
+        //     borderRadius: BorderRadius.circular(12),
+        //   ),
+        //   padding: const EdgeInsets.symmetric(
+        //       vertical: 8), // 👈 remove horizontal padding
+        //   child: Center(
+        //     // 👈 ensure slider is centered in container
+        //     child: SliderTheme(
+        //       data: SliderTheme.of(context).copyWith(
+        //         activeTrackColor: const Color(0xFF42A5F5),
+        //         inactiveTrackColor: Colors.grey[300],
+        //         thumbColor: const Color(0xFF42A5F5),
+        //         overlayColor: const Color(0xFF42A5F5).withOpacity(0.2),
+        //         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
+        //       ),
+        //       child: Slider(
+        //         value: _trainingDifficulty,
+        //         min: 1,
+        //         max: 5,
+        //         divisions: 4,
+        //         label: labels[_trainingDifficulty.toInt() - 1],
+        //         onChanged: (value) {
+        //           setState(() {
+        //             _trainingDifficulty = value;
+        //           });
+        //         },
+        //       ),
+        //     ),
+        //   ),
+        // ),
+        const SizedBox(height: 8),
+
+        // Current label
+        Text(
+          labels[_adaptability.toInt() - 1],
+          style: TextStyle(
+            fontSize: isSmall ? 14 : 15,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF26A69A),
+          ),
+        ),
+      ],
     );
   }
 
@@ -811,7 +801,7 @@ class _PetTemperamentInformationScreenState
       'affection_level': _affectionLevel,
       'independence': _independence,
       'adaptability': _adaptability,
-      'training_level': _trainingLevel,
+      'training_difficulty': _trainingDifficulty.toInt(),
     };
 
     // TODO: Save to database

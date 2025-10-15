@@ -1,5 +1,5 @@
 import 'package:petmatch/core/config/supabase_config.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:petmatch/core/model/pet_model.dart';
 
 class FavoritesRepository {
   Future<List<String>> getFavoritePetIds(String userId) async {
@@ -8,12 +8,23 @@ class FavoritesRepository {
     return (response as List).map((row) => row['pet_id'] as String).toList();
   }
 
+  Future<List<Pet>> getMostFavoritedPets({int limit = 5}) async {
+    final response = await supabase.rpc('get_most_favorited_pets',
+        params: {'limit_count': limit}).select();
+    print('Response: $response');
+
+    if (response == null) return [];
+
+    return (response as List)
+        .map((json) => Pet.fromJson(json as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<void> addFavorite(String userId, String petId) async {
-    await supabase.from('favorites').insert({
+    await supabase.from('favorites').upsert({
       'user_id': userId,
       'pet_id': petId,
-      'created_at': DateTime.now().toIso8601String(),
-    });
+    }, onConflict: 'user_id,pet_id');
   }
 
   Future<void> removeFavorite(String userId, String petId) async {

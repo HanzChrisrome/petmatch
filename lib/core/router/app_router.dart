@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:petmatch/core/router/admin_routes.dart';
 import 'package:petmatch/core/router/auth_routes.dart';
 import 'package:petmatch/core/router/home_routes.dart';
 import 'package:petmatch/core/router/onboarding_routes.dart';
@@ -23,6 +24,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ...homeRoutes,
       ...authRoutes,
       ...onboardingRoutes,
+      ...adminRoutes,
     ],
   );
 });

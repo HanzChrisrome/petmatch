@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:petmatch/core/model/pet_match_model.dart';
 import 'package:petmatch/features/home/provider/match_provider/match_provider.dart';
 import 'package:petmatch/features/home/widgets/ai_loader.dart';
 import 'package:petmatch/features/home/widgets/pet_details_modal.dart';
 import 'package:petmatch/features/home/widgets/custom_bottom_navbar.dart';
+import 'package:petmatch/admin/features/pet_management_page.dart';
 import 'package:petmatch/core/config/supabase_config.dart';
 import 'package:petmatch/core/services/gemini_service.dart';
 
@@ -21,7 +23,6 @@ class MatchDashboard extends ConsumerStatefulWidget {
 
 class _MatchDashboardState extends ConsumerState<MatchDashboard>
     with TickerProviderStateMixin {
-  int _currentIndex = 0;
   bool _isListView = false; // Toggle between card and list view
 
   @override
@@ -33,7 +34,6 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
 
   void _showPetDetailsFromList(int index) {
     final petMatches = ref.read(matchProvider).matches;
-    // Only pass the matched pets, not all pets
     final matchedPets = petMatches.map((m) => m.pet).toList();
     showPetDetailsModal(
       context,
@@ -131,19 +131,38 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
                       color: Colors.black87,
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(
-                      _isListView ? Icons.view_agenda : Icons.view_carousel,
-                      color: Colors.deepOrange,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isListView = !_isListView;
-                      });
-                    },
-                    tooltip: _isListView
-                        ? 'Switch to Card View'
-                        : 'Switch to List View',
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          _isListView ? Icons.view_agenda : Icons.view_carousel,
+                          color: Colors.deepOrange,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isListView = !_isListView;
+                          });
+                        },
+                        tooltip: _isListView
+                            ? 'Switch to Card View'
+                            : 'Switch to List View',
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.settings,
+                          color: Colors.deepOrange,
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PetManagementPage(),
+                            ),
+                          );
+                        },
+                        tooltip: 'Manage Pets',
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -169,8 +188,13 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
-            color: Colors.deepOrange,
+          SizedBox(
+            width: 300,
+            height: 300,
+            child: Lottie.asset(
+              'assets/lottie/Dog walking.json',
+              repeat: true,
+            ),
           ),
           const SizedBox(height: 20),
           Text(
@@ -221,11 +245,6 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
   Widget _buildCardView(List<PetMatch> petMatches) {
     return PageView.builder(
       itemCount: petMatches.length,
-      onPageChanged: (index) {
-        setState(() {
-          _currentIndex = index;
-        });
-      },
       controller: PageController(viewportFraction: 0.85),
       itemBuilder: (context, index) {
         return AnimatedBuilder(

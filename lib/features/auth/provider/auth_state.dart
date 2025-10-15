@@ -12,6 +12,7 @@ class UserAuthState with _$UserAuthState {
     String? userName,
     String? userEmail,
     String? userPassword,
+    String? userType,
     int? failedAttempts,
     DateTime? lockoutTime,
     @Default(false) bool isAuthenticated,

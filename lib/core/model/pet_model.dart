@@ -10,9 +10,8 @@ class Pet {
   final String? ageUnit;
   final String? size;
   final String? description;
-  final String?
-      thumbnailPath; // Changed from imagePath to thumbnailPath (nullable for pets without images)
-  final List<String> imageUrls; // New: List of full-size image URLs
+  final String? thumbnailPath;
+  final List<String> imageUrls;
   final String? ownerId;
   final bool isAdopted;
   final String? status;
@@ -122,13 +121,22 @@ class Pet {
       }
     }
 
+    // helper to safely parse ints from dynamic values (num or String)
+    int? _parseInt(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
     return Pet(
       id: json['pet_id'] as String,
       name: json['name'] as String,
       species: json['species'] as String,
       breed: json['breed'] as String?,
       gender: json['gender'] as String?,
-      age: (json['age'] as num?)?.toInt(),
+      age: _parseInt(json['age']),
       size: json['size'] as String?,
       description: json['description'] as String?,
       thumbnailPath: json['thumbnail_path'] as String?,
@@ -147,17 +155,16 @@ class Pet {
       vaccinations: healthNotes?['vaccinations'] as bool?,
       spayedNeutered: healthNotes?['spayed_neutered'] as bool?,
       specialNeeds: healthNotes?['special_needs'] as bool?,
-      groomingNeeds: (temperament?['grooming_needs'] as num?)?.toInt(),
+      groomingNeeds: _parseInt(temperament?['grooming_needs']),
       // Activity & Personality from activity_level
-      energyLevel: (activityLevel?['energy_level'] as num?)?.toInt(),
-      playfulness: (activityLevel?['playfulness'] as num?)?.toInt(),
+      energyLevel: _parseInt(activityLevel?['energy_level']),
+      playfulness: _parseInt(activityLevel?['playfulness']),
       dailyExercise: activityLevel?['daily_exercise'] as String?,
       // Temperament from temperament
-      affectionLevel: (temperament?['affection_level'] as num?)?.toInt(),
-      independence: (temperament?['independence'] as num?)?.toInt(),
-      adaptability: (temperament?['adaptability'] as num?)?.toInt(),
-      trainingDifficulty:
-          (temperament?['training_difficulty'] as num?)?.toInt(),
+      affectionLevel: _parseInt(temperament?['affection_level']),
+      independence: _parseInt(temperament?['independence']),
+      adaptability: _parseInt(temperament?['adaptability']),
+      trainingDifficulty: _parseInt(temperament?['training_difficulty']),
       temperamentTraits: traits,
     );
   }

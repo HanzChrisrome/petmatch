@@ -18,7 +18,9 @@ class LandingDashboard extends ConsumerStatefulWidget {
 }
 
 class _LandingDashboardState extends ConsumerState<LandingDashboard> {
+  bool _showMostFavorited = true;
   int _selectedCategoryIndex = 0;
+  bool _isGridView = true;
   final ScrollController _scrollController = ScrollController();
 
   // Colors for pet cards
@@ -42,6 +44,7 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(petsProvider.notifier).fetchInitialPets();
       ref.read(favoritesProvider.notifier).fetchFavorites();
+      ref.read(favoritesProvider.notifier).fetchMostFavoritePets();
     });
 
     _scrollController.addListener(_onScroll);
@@ -77,6 +80,7 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
         authState.userName ?? authState.userEmail?.split('@').first ?? 'User';
 
     final petsState = ref.watch(petsProvider);
+    final favoritesState = ref.watch(favoritesProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -111,10 +115,43 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
                         children: [
                           _buildCarouselHeader(),
                           const SizedBox(height: 10),
+                          if (favoritesState.favoritePets.isNotEmpty)
+                            _buildMostFavoritedSection(
+                                favoritesState.favoritePets),
+                          const SizedBox(height: 10),
                           _buildCategoryCards(),
-                          const InfoBanner(
-                              message: 'Tap a pet card to view more details'),
-                          _buildPetsGrid(petsState.filteredPets ?? []),
+                          Row(
+                            children: [
+                              const Expanded(
+                                child: InfoBanner(
+                                    message:
+                                        'Tap a pet card to view more details'),
+                              ),
+                              const SizedBox(width: 10),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _isGridView = !_isGridView;
+                                  });
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  padding: const EdgeInsets.all(8),
+                                  child: Icon(
+                                    _isGridView
+                                        ? Icons.view_list
+                                        : Icons.grid_view,
+                                    size: 24,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          _buildPetsDisplay(petsState.filteredPets ?? []),
                           if (petsState.isFetchingMore)
                             const Padding(
                               padding: EdgeInsets.all(16.0),
@@ -266,7 +303,7 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
     );
   }
 
-  Widget _buildPetsGrid(List<Pet> pets) {
+  Widget _buildPetsDisplay(List<Pet> pets) {
     if (pets.isEmpty) {
       return Center(
         child: Padding(
@@ -283,21 +320,219 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
       );
     }
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.75,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: pets.length,
-      itemBuilder: (context, index) {
-        final pet = pets[index];
-        final cardColor = _cardColors[index % _cardColors.length];
-        return _buildPetCard(pet, cardColor, index, pets);
+    if (_isGridView) {
+      return GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.75,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+        ),
+        itemCount: pets.length,
+        itemBuilder: (context, index) {
+          final pet = pets[index];
+          final cardColor = _cardColors[index % _cardColors.length];
+          return _buildPetCard(pet, cardColor, index, pets);
+        },
+      );
+    } else {
+      // List view
+      return ListView.separated(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: pets.length,
+        separatorBuilder: (context, index) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final pet = pets[index];
+          final cardColor = _cardColors[index % _cardColors.length];
+          return _buildPetListTile(pet, cardColor, index, pets);
+        },
+      );
+    }
+  }
+
+  Widget _buildPetListTile(
+      Pet pet, Color cardColor, int index, List<Pet> allPets) {
+    return Consumer(
+      builder: (context, ref, _) {
+        final favoritesState = ref.watch(favoritesProvider);
+        final favoritesNotifier = ref.read(favoritesProvider.notifier);
+        final isFavorite = favoritesState.favoriteIds.contains(pet.id);
+        return ListTile(
+          onTap: () => showPetDetailsModal(context, allPets, index),
+          tileColor: cardColor,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          leading: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: SizedBox(
+              width: 56,
+              height: 56,
+              child: CachedNetworkImage(
+                imageUrl: pet.thumbnailUrl ?? '',
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  color: Colors.grey[200],
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: Colors.grey[200],
+                  child: const Center(
+                    child: Icon(Icons.pets, size: 32, color: Colors.grey),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          title: Text(
+            pet.name,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Row(
+            children: [
+              if (pet.gender != null)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      pet.gender?.toLowerCase() == 'male'
+                          ? Icons.male
+                          : Icons.female,
+                      size: 14,
+                      color: pet.gender?.toLowerCase() == 'male'
+                          ? Colors.blue[700]
+                          : Colors.pink[700],
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                      pet.gender!,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: pet.gender?.toLowerCase() == 'male'
+                            ? Colors.blue[700]
+                            : Colors.pink[700],
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: pet.ageCategory == 'Young'
+                      ? Colors.green[50]
+                      : Colors.orange[50],
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: pet.ageCategory == 'Young'
+                        ? Colors.green[300]!
+                        : Colors.orange[300]!,
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  pet.ageCategory,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: pet.ageCategory == 'Young'
+                        ? Colors.green[700]
+                        : Colors.orange[700],
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          trailing: IconButton(
+            icon: Icon(
+              isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: Colors.red,
+            ),
+            onPressed: () async {
+              if (isFavorite) {
+                await favoritesNotifier.removeFavorite(context, pet.id);
+              } else {
+                await favoritesNotifier.addFavorite(context, pet.id);
+              }
+            },
+          ),
+        );
       },
+    );
+  }
+
+  Widget _buildMostFavoritedSection(List<Pet> pets) {
+    if (pets.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 255, 203, 203),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color.fromARGB(255, 255, 108, 108)),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _showMostFavorited = !_showMostFavorited;
+              });
+            },
+            child: Row(
+              children: [
+                const Text(
+                  '❤️ Most Favorited Pets',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  _showMostFavorited
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  size: 28,
+                ),
+              ],
+            ),
+          ),
+          _showMostFavorited
+              ? const SizedBox(height: 12)
+              : const SizedBox.shrink(),
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 200),
+            crossFadeState: _showMostFavorited
+                ? CrossFadeState.showFirst
+                : CrossFadeState.showSecond,
+            firstChild: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.75,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+              ),
+              itemCount: pets.length,
+              itemBuilder: (context, index) {
+                final pet = pets[index];
+                final cardColor = _cardColors[index % _cardColors.length];
+                return _buildPetCard(pet, cardColor, index, pets);
+              },
+            ),
+            secondChild: const SizedBox.shrink(),
+          ),
+        ],
+      ),
     );
   }
 
