@@ -8,6 +8,12 @@ import 'package:petmatch/core/model/pet_match_model.dart';
 class PetRepository {
   final _supabase = supabase;
 
+  String _capitalize(String value) {
+    if (value.trim().isEmpty) return value;
+    final t = value.trim();
+    return t[0].toUpperCase() + t.substring(1).toLowerCase();
+  }
+
   Future<List<Pet>> getPets({
     int limit = 10,
     int offset = 0,
@@ -111,6 +117,8 @@ class PetRepository {
     required double independence,
     required double adaptability,
     required int? trainingDifficulty,
+    // Optional single-line quirk/notes
+    required String? quirk,
   }) async {
     try {
       print('💾 Starting to save pet: $petName');
@@ -169,7 +177,7 @@ class PetRepository {
         'age': age,
         'gender': gender,
         'size': size,
-        'status': status,
+        'status': _capitalize(status),
         'thumbnail_path': thumbnailPath,
         'is_adopted': false,
         'created_at': DateTime.now().toIso8601String(),
@@ -238,6 +246,7 @@ class PetRepository {
           'training_difficulty': trainingDifficulty,
           'grooming_needs': groomingNeeds,
         },
+        'quirk': quirk,
         'updated_at': DateTime.now().toIso8601String(),
       });
 
@@ -284,6 +293,7 @@ class PetRepository {
     required double independence,
     required double adaptability,
     required int? trainingDifficulty,
+    required String? quirk,
     String? existingThumbnailPath,
   }) async {
     try {
@@ -354,7 +364,7 @@ class PetRepository {
         'age': age,
         'gender': gender,
         'size': size,
-        'status': status,
+        'status': _capitalize(status),
         'description': description,
         'created_at': DateTime.now().toIso8601String(),
       };
@@ -435,6 +445,7 @@ class PetRepository {
           'training_difficulty': trainingDifficulty,
           'grooming_needs': groomingNeeds,
         },
+        'quirk': quirk,
         'updated_at': DateTime.now().toIso8601String(),
       }).eq('pet_id', petId);
       print('✅ Pet characteristics updated');

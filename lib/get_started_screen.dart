@@ -197,7 +197,7 @@ class _GetStartedScreenState extends State<GetStartedScreen>
                   "assets/get_started_screen/dog.png",
                   fit: BoxFit.contain,
                   alignment: Alignment.bottomCenter,
-                  height: isSmallScreen ? 210 : 350,
+                  height: isSmallScreen ? 210 : 330,
                 ),
               ],
             ),

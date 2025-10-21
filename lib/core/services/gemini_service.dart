@@ -90,6 +90,8 @@ class GeminiService {
     final petTraits = pet.temperamentTraits.isNotEmpty
         ? pet.temperamentTraits.join(', ')
         : 'Not specified';
+    final petQuirks = pet.quirks ?? 'None';
+    final hasQuirk = pet.quirks != null && pet.quirks!.trim().isNotEmpty;
 
     // health_notes JSON
     final petSpecialNeeds = pet.specialNeeds == null
@@ -147,6 +149,7 @@ Temperament & Personality:
   • Training Difficulty: $petTrainingDifficulty/10 (1=Easy to train, 10=Challenging)
   • Grooming Needs: $petGroomingNeeds/5 (1=Low, 5=High)
   • Personality Traits: $petTraits
+  • Quirks: $petQuirks ${hasQuirk ? '⭐ (This is a unique characteristic!)' : ''}
 
 Behavior & Compatibility:
   • Good with Children: $petGoodWithChildren
@@ -177,10 +180,13 @@ Write a warm, friendly, personalized explanation (2-3 short paragraphs, max 150 
    - "Since you're comfortable with grooming ($userGroomingLevel/5), ${pet.name}'s grooming needs ($petGroomingNeeds/5) won't be overwhelming"
    - "Your training patience ($userTrainingPatience/5) is ideal for ${pet.name}'s training needs ($petTrainingDifficulty/10)"
 3. **Highlight household compatibility** if relevant (children, other pets)
-4. **Mention 1-2 strongest score categories** (above 75%) without stating exact percentages
-5. **Use a warm, conversational tone** - like a friend giving advice
-6. **DO NOT** list scores or percentages in your explanation
-7. **Focus on WHY this pet fits the user's lifestyle and personality**
+4. **If a quirk exists (not "None"), weave it naturally into the explanation** - This is ${pet.name}'s unique personality trait that makes them special! Use it to add character and warmth to your explanation. Examples:
+   - "${pet.name} is sweet and easygoing, making her a perfect companion for your moderate activity lifestyle"
+   - "Known as the 'mayordoma' who greets everyone at the kennel doors, ${pet.name}'s friendly nature will bring joy to your home"
+5. **Mention 1-2 strongest score categories** (above 75%) without stating exact percentages
+6. **Use a warm, conversational tone** - like a friend giving advice
+7. **DO NOT** list scores or percentages in your explanation
+8. **Focus on WHY this pet fits the user's lifestyle and personality**
 
 Generate the explanation now:
 ''';

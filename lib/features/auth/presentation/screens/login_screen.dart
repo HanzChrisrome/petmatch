@@ -293,7 +293,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   iconSize: 18,
                   borderColor: Theme.of(context).colorScheme.onPrimary,
                   iconColor: Theme.of(context).colorScheme.onPrimary,
-                  onTap: () => context.pop(),
+                  onTap: () {
+                    if (Navigator.of(context).canPop()) {
+                      context.pop();
+                    } else {
+                      context.go('/splash');
+                    }
+                  },
                 ),
               ),
             ),

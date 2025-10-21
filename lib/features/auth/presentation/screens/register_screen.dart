@@ -105,15 +105,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 ThemedTextField(
+                                  label: 'Username',
+                                  controller: username,
+                                  prefixIcon: Icons.person,
+                                ),
+                                ThemedTextField(
                                   label: 'E-mail',
                                   controller: emailController,
                                   prefixIcon: Icons.email,
                                   validator: Validators.validateEmail,
-                                ),
-                                ThemedTextField(
-                                  label: 'Username',
-                                  controller: username,
-                                  prefixIcon: Icons.person,
                                 ),
                                 ThemedTextField(
                                   label: 'Password',

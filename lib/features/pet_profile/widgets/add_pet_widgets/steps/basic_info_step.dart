@@ -16,12 +16,15 @@ class BasicInfoStep extends ConsumerStatefulWidget {
   final TextEditingController breedController;
   final TextEditingController ageController;
   final TextEditingController descriptionController;
+  final TextEditingController quirkController;
   final String? selectedSpecies;
   final String? selectedGender;
   final String? selectedSize;
+  final String? selectedStatus;
   final Function(String?) onSpeciesChanged;
   final Function(String?) onGenderChanged;
   final Function(String?) onSizeChanged;
+  final Function(String?)? onStatusChanged;
   final List<File> selectedImages;
   final File? thumbnailImage;
   final Function(List<File>) onImagesChanged;
@@ -39,12 +42,15 @@ class BasicInfoStep extends ConsumerStatefulWidget {
     required this.breedController,
     required this.ageController,
     required this.descriptionController,
+    required this.quirkController,
     required this.selectedSpecies,
     required this.selectedGender,
     required this.selectedSize,
+    this.selectedStatus,
     required this.onSpeciesChanged,
     required this.onGenderChanged,
     required this.onSizeChanged,
+    this.onStatusChanged,
     required this.selectedImages,
     required this.thumbnailImage,
     required this.onImagesChanged,
@@ -253,6 +259,28 @@ class _BasicInfoStepState extends ConsumerState<BasicInfoStep> {
           ),
           const SizedBox(height: 20),
 
+          // Description
+          _buildFieldLabel('Description', '📝'),
+          const SizedBox(height: 8),
+          ThemedTextField(
+            controller: widget.descriptionController,
+            label: 'A short description about the pet',
+            prefixIcon: Icons.description,
+            maxLines: 6,
+            keyboardType: TextInputType.multiline,
+          ),
+          const SizedBox(height: 12),
+          // Quirk input
+          _buildFieldLabel('Quirk', '✨'),
+          const SizedBox(height: 8),
+          ThemedTextField(
+            controller: widget.quirkController,
+            label: 'e.g., Loves to hide socks, Very vocal at night',
+            prefixIcon: Icons.lightbulb,
+            maxLines: 1,
+          ),
+          const SizedBox(height: 20),
+
           // Age and Gender Row
           Row(
             children: [
@@ -299,6 +327,11 @@ class _BasicInfoStepState extends ConsumerState<BasicInfoStep> {
           _buildFieldLabel('Size', '📏', isRequired: true),
           const SizedBox(height: 8),
           _buildSizeChips(),
+          const SizedBox(height: 16),
+          // Status toggle
+          _buildFieldLabel('Status', '📣'),
+          const SizedBox(height: 8),
+          _buildStatusToggle(),
           const SizedBox(height: 20),
         ],
       ),
@@ -359,6 +392,14 @@ class _BasicInfoStepState extends ConsumerState<BasicInfoStep> {
   }
 
   Widget _buildGenderDropdown() {
+    final genders = ['Male', 'Female', 'Unknown'];
+    final current = widget.selectedGender;
+    final displayed = current == null
+        ? null
+        : (current.trim().isEmpty
+            ? null
+            : '${current.trim()[0].toUpperCase()}${current.trim().substring(1).toLowerCase()}');
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -366,7 +407,7 @@ class _BasicInfoStepState extends ConsumerState<BasicInfoStep> {
         border: Border.all(color: Colors.grey[300]!, width: 1.5),
       ),
       child: DropdownButtonFormField<String>(
-        value: widget.selectedGender?.toLowerCase().trim(),
+        value: displayed,
         decoration: const InputDecoration(
           prefixIcon: Icon(Icons.wc, color: Color(0xFFFF9800)),
           border: InputBorder.none,
@@ -376,9 +417,9 @@ class _BasicInfoStepState extends ConsumerState<BasicInfoStep> {
         validator: (value) => value == null ? 'Required' : null,
         isExpanded: true,
         dropdownColor: Colors.white,
-        items: ['Male', 'Female', 'Unknown']
+        items: genders
             .map((gender) => DropdownMenuItem(
-                  value: gender.toLowerCase(),
+                  value: gender,
                   child: Text(gender, style: GoogleFonts.poppins(fontSize: 14)),
                 ))
             .toList(),
@@ -892,6 +933,67 @@ class _BasicInfoStepState extends ConsumerState<BasicInfoStep> {
             ),
           ),
         ],
+      ],
+    );
+  }
+
+  Widget _buildStatusToggle() {
+    final current = widget.selectedStatus?.trim();
+
+    bool isAvailable = current != null && current.toLowerCase() == 'available';
+
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: () => widget.onStatusChanged?.call('Available'),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: isAvailable ? const Color(0xFFFF9800) : Colors.white,
+                border: Border.all(
+                  color:
+                      isAvailable ? const Color(0xFFFF9800) : Colors.grey[300]!,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  'Available',
+                  style: GoogleFonts.poppins(
+                    color: isAvailable ? Colors.white : Colors.black87,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: GestureDetector(
+            onTap: () => widget.onStatusChanged?.call('Not available'),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: !isAvailable ? Colors.grey[300] : Colors.white,
+                border: Border.all(
+                  color: !isAvailable ? Colors.grey[600]! : Colors.grey[300]!,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  'Not available',
+                  style: GoogleFonts.poppins(
+                    color: !isAvailable ? Colors.black87 : Colors.black54,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }

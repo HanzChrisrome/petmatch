@@ -38,6 +38,7 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
   final TextEditingController _breedController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _quirkController = TextEditingController();
 
   String? _petId;
 
@@ -100,8 +101,14 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
     _breedController.text = pet.breed ?? '';
     _ageController.text = pet.age?.toString() ?? '';
     _descriptionController.text = pet.description ?? '';
+    _quirkController.text = pet.quirks ?? '';
     _selectedSpecies = pet.species;
-    _selectedGender = pet.gender;
+    // Normalize gender to capitalized form for the dropdown
+    _selectedGender = pet.gender == null
+        ? null
+        : (pet.gender!.trim().isEmpty
+            ? null
+            : '${pet.gender!.trim()[0].toUpperCase()}${pet.gender!.trim().substring(1).toLowerCase()}');
     _selectedSize = pet.size;
     _selectedStatus = pet.status;
 
@@ -153,7 +160,16 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
     _healthNotesController.dispose();
     _specialNeedsDescController.dispose();
     _behavioralNotesController.dispose();
+    _quirkController.dispose();
     super.dispose();
+  }
+
+  String _capitalize(String? s, {String defaultValue = ''}) {
+    if (s == null || s.trim().isEmpty) return defaultValue;
+    final trimmed = s.trim();
+    return trimmed.length == 1
+        ? trimmed.toUpperCase()
+        : '${trimmed[0].toUpperCase()}${trimmed.substring(1).toLowerCase()}';
   }
 
   Future<void> _savePet() async {
@@ -173,9 +189,9 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
               species: _selectedSpecies!,
               breed: _breedController.text.trim(),
               age: int.tryParse(_ageController.text.trim()) ?? 0,
-              gender: _selectedGender!,
+              gender: _capitalize(_selectedGender),
               size: _selectedSize!,
-              status: _selectedStatus ?? 'available',
+              status: _capitalize(_selectedStatus, defaultValue: 'Available'),
               description: _descriptionController.text.trim(),
               thumbnailImage: _thumbnailImage,
               selectedImages: _selectedImages,
@@ -201,6 +217,7 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
               independence: _independence,
               adaptability: _adaptability,
               trainingDifficulty: _trainingDifficulty.toInt(),
+              quirk: _quirkController.text.trim(),
               existingThumbnailPath: _existingThumbnailUrl,
             );
       } else {
@@ -210,9 +227,9 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
               species: _selectedSpecies!,
               breed: _breedController.text.trim(),
               age: int.tryParse(_ageController.text.trim()) ?? 0,
-              gender: _selectedGender!,
+              gender: _capitalize(_selectedGender),
               size: _selectedSize!,
-              status: _selectedStatus ?? 'available',
+              status: _capitalize(_selectedStatus, defaultValue: 'Available'),
               thumbnailImage: _thumbnailImage,
               selectedImages: _selectedImages,
               isVaccinationUpToDate: _isVaccinationUpToDate,
@@ -231,6 +248,7 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
               independence: _independence,
               adaptability: _adaptability,
               trainingDifficulty: _trainingDifficulty.toInt(),
+              quirk: _quirkController.text.trim(),
             );
       }
 
@@ -347,15 +365,19 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
                     breedController: _breedController,
                     ageController: _ageController,
                     descriptionController: _descriptionController,
+                    quirkController: _quirkController,
                     selectedSpecies: _selectedSpecies,
                     selectedGender: _selectedGender,
                     selectedSize: _selectedSize,
+                    selectedStatus: _selectedStatus,
                     onSpeciesChanged: (value) =>
                         setState(() => _selectedSpecies = value),
                     onGenderChanged: (value) =>
                         setState(() => _selectedGender = value),
                     onSizeChanged: (value) =>
                         setState(() => _selectedSize = value),
+                    onStatusChanged: (value) =>
+                        setState(() => _selectedStatus = value),
                     selectedImages: _selectedImages,
                     thumbnailImage: _thumbnailImage,
                     onImagesChanged: (images) => setState(() => _selectedImages

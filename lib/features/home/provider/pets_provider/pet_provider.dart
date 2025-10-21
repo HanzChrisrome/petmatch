@@ -119,6 +119,7 @@ class PetNotifier extends Notifier<PetState> {
     required double independence,
     required double adaptability,
     required int? trainingDifficulty,
+    required String? quirk,
   }) async {
     try {
       state = state.copyWith(isLoading: true, errorMessage: null);
@@ -154,6 +155,7 @@ class PetNotifier extends Notifier<PetState> {
         independence: independence,
         adaptability: adaptability,
         trainingDifficulty: trainingDifficulty,
+        quirk: quirk,
       );
 
       print('✅ Pet saved successfully!');
@@ -265,6 +267,7 @@ class PetNotifier extends Notifier<PetState> {
     required double independence,
     required double adaptability,
     required int? trainingDifficulty,
+    required String? quirk,
   }) async {
     try {
       state = state.copyWith(isLoading: true, errorMessage: null);
@@ -303,6 +306,7 @@ class PetNotifier extends Notifier<PetState> {
         independence: independence,
         adaptability: adaptability,
         trainingDifficulty: trainingDifficulty,
+        quirk: quirk,
       );
 
       print('✅ Pet updated successfully!');

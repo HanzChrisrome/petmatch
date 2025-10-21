@@ -14,6 +14,7 @@ class Pet {
   final List<String> imageUrls;
   final String? ownerId;
   final bool isAdopted;
+  final String? availablity;
   final String? status;
   final DateTime? createdAt;
 
@@ -40,6 +41,7 @@ class Pet {
   final int? adaptability; // 1-10 scale
   final int? trainingDifficulty; // 1-10 scale
   final List<String> temperamentTraits;
+  final String? quirks;
 
   Pet({
     required this.id,
@@ -55,6 +57,7 @@ class Pet {
     this.imageUrls = const [],
     this.ownerId,
     this.isAdopted = false,
+    this.availablity,
     this.status,
     this.createdAt,
     this.goodWithChildren,
@@ -73,6 +76,7 @@ class Pet {
     this.adaptability,
     this.trainingDifficulty,
     this.temperamentTraits = const [],
+    this.quirks,
   });
 
   factory Pet.fromJson(Map<String, dynamic> json) {
@@ -93,6 +97,7 @@ class Pet {
     Map<String, dynamic>? healthNotes;
     Map<String, dynamic>? activityLevel;
     Map<String, dynamic>? temperament;
+    String? quirk;
 
     if (json['pet_characteristics'] != null) {
       final characteristics = json['pet_characteristics'] is List
@@ -108,6 +113,7 @@ class Pet {
         activityLevel =
             characteristics['activity_level'] as Map<String, dynamic>?;
         temperament = characteristics['temperament'] as Map<String, dynamic>?;
+        quirk = characteristics['quirk'] as String?;
       }
     }
 
@@ -122,7 +128,7 @@ class Pet {
     }
 
     // helper to safely parse ints from dynamic values (num or String)
-    int? _parseInt(dynamic value) {
+    int? parseInt(dynamic value) {
       if (value == null) return null;
       if (value is int) return value;
       if (value is num) return value.toInt();
@@ -136,13 +142,14 @@ class Pet {
       species: json['species'] as String,
       breed: json['breed'] as String?,
       gender: json['gender'] as String?,
-      age: _parseInt(json['age']),
+      age: parseInt(json['age']),
       size: json['size'] as String?,
       description: json['description'] as String?,
       thumbnailPath: json['thumbnail_path'] as String?,
       imageUrls: images,
       status: json['status'] as String?,
       isAdopted: (json['status'] as String?)?.toLowerCase() == 'adopted',
+      availablity: json['status'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
@@ -155,17 +162,18 @@ class Pet {
       vaccinations: healthNotes?['vaccinations'] as bool?,
       spayedNeutered: healthNotes?['spayed_neutered'] as bool?,
       specialNeeds: healthNotes?['special_needs'] as bool?,
-      groomingNeeds: _parseInt(temperament?['grooming_needs']),
+      groomingNeeds: parseInt(temperament?['grooming_needs']),
       // Activity & Personality from activity_level
-      energyLevel: _parseInt(activityLevel?['energy_level']),
-      playfulness: _parseInt(activityLevel?['playfulness']),
+      energyLevel: parseInt(activityLevel?['energy_level']),
+      playfulness: parseInt(activityLevel?['playfulness']),
       dailyExercise: activityLevel?['daily_exercise'] as String?,
       // Temperament from temperament
-      affectionLevel: _parseInt(temperament?['affection_level']),
-      independence: _parseInt(temperament?['independence']),
-      adaptability: _parseInt(temperament?['adaptability']),
-      trainingDifficulty: _parseInt(temperament?['training_difficulty']),
+      affectionLevel: parseInt(temperament?['affection_level']),
+      independence: parseInt(temperament?['independence']),
+      adaptability: parseInt(temperament?['adaptability']),
+      trainingDifficulty: parseInt(temperament?['training_difficulty']),
       temperamentTraits: traits,
+      quirks: quirk,
     );
   }
 

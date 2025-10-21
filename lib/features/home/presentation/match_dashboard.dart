@@ -147,21 +147,21 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
                             ? 'Switch to Card View'
                             : 'Switch to List View',
                       ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.settings,
-                          color: Colors.deepOrange,
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const PetManagementPage(),
-                            ),
-                          );
-                        },
-                        tooltip: 'Manage Pets',
-                      ),
+                      // IconButton(
+                      //   icon: const Icon(
+                      //     Icons.settings,
+                      //     color: Colors.deepOrange,
+                      //   ),
+                      //   onPressed: () {
+                      //     Navigator.push(
+                      //       context,
+                      //       MaterialPageRoute(
+                      //         builder: (context) => const PetManagementPage(),
+                      //       ),
+                      //     );
+                      //   },
+                      //   tooltip: 'Manage Pets',
+                      // ),
                     ],
                   ),
                 ],
@@ -654,6 +654,8 @@ class _MatchDashboardState extends ConsumerState<MatchDashboard>
                         _buildInfoChip(pet.breed!, Icons.pets),
                       if (pet.size != null)
                         _buildInfoChip(pet.size!, Icons.straighten),
+                      if (pet.availablity != null)
+                        _buildInfoChip(pet.availablity!, Icons.event_available),
                     ],
                   ),
                   const SizedBox(height: 12),

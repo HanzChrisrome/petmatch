@@ -334,6 +334,8 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
                     ),
                     const Spacer(),
                     Container(
+                      constraints: const BoxConstraints(
+                          maxWidth: 190), // adjust as needed
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
@@ -347,6 +349,8 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
                           fontSize: 16,
                           color: Colors.grey[600],
                         ),
+                        softWrap: true,
+                        overflow: TextOverflow.visible,
                       ),
                     ),
                     Icon(
@@ -372,6 +376,44 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
                             color: Colors.grey[800],
                             fontWeight: FontWeight.w400,
                           ),
+                    ),
+                  ),
+
+                // Quirk display (optional)
+                if (pet.quirks != null && pet.quirks!.trim().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.orange.withOpacity(0.18),
+                        ),
+                      ),
+                      padding: const EdgeInsets.all(12),
+                      child: Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Quirk',
+                              style: GoogleFonts.newsreader(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              pet.quirks!,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium!
+                                  .copyWith(fontSize: 14),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
 

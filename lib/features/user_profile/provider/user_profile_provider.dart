@@ -49,6 +49,9 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
     required String column, // EXAMPLE: user_lifestyle
     required String key, // EXAMPLE: activity_level (IN THE JSON)
   }) {
+    // The onboarding screens use JSON keys such as 'snuggly_preference'
+    // and 'grooming_tolerance' inside the `personality_traits` object.
+    // Switch on the JSON 'key' and update the corresponding local state.
     switch (key) {
       case 'activity_level':
         state = state.copyWith(
@@ -62,7 +65,7 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
           patienceLabel: label,
         );
         break;
-      case 'affection_level':
+      case 'snuggly_preference':
         state = state.copyWith(
           affectionLevel: level,
           affectionLabel: label,
@@ -75,7 +78,7 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
         );
         break;
       default:
-        throw ArgumentError('Unsupported column: $column');
+        throw ArgumentError('Unsupported update key: $key for column: $column');
     }
 
     print('💾 Updating $column -> $key: $level - $label in state');

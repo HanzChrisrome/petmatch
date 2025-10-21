@@ -39,6 +39,7 @@ class ThemedTextField extends StatelessWidget {
           filled: true,
           focusedBorderColor: Theme.of(context).colorScheme.onPrimary,
           validator: validator,
+          maxLines: maxLines,
         ),
       );
     }
