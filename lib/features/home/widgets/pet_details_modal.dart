@@ -71,8 +71,8 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
                     }
                   },
                   itemCount: widget.pets.length,
-                  itemBuilder: (context, index) =>
-                      _buildPetDetails(widget.pets[index], index),
+                  itemBuilder: (context, index) => _buildPetDetails(
+                      widget.pets[index], index, scrollController),
                 ),
               ],
             ),
@@ -82,223 +82,227 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
     );
   }
 
-  Widget _buildPetDetails(Pet pet, int petIndex) {
+  Widget _buildPetDetails(
+      Pet pet, int petIndex, ScrollController scrollController) {
     final imageUrls = pet.fullImageUrls;
     print('Image Url: $imageUrls');
 
     final imagePageController = _imagePageControllers[petIndex]!;
     final currentImageIndex = _currentImageIndices[petIndex] ?? 0;
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Pet Images Carousel (or placeholder if no images)
-          Stack(
-            children: [
-              SizedBox(
-                height: 450,
-                child: imageUrls.isEmpty
-                    ? Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: const BorderRadius.vertical(
-                              bottom: Radius.circular(25)),
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.pets,
-                                  size: 100, color: Colors.grey[400]),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No images available',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    : PageView.builder(
-                        controller: imagePageController,
-                        onPageChanged: (index) {
-                          setState(() {
-                            _currentImageIndices[petIndex] = index;
-                          });
-                        },
-                        itemCount: imageUrls.length,
-                        itemBuilder: (context, index) {
-                          return ClipRRect(
-                            borderRadius: const BorderRadius.vertical(
-                                bottom: Radius.circular(25)),
-                            child: CachedNetworkImage(
-                              imageUrl: imageUrls[index],
-                              height: 450,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => Container(
-                                color: Colors.grey[200],
-                                child: const Center(
-                                    child: CircularProgressIndicator()),
-                              ),
-                              errorWidget: (context, url, error) => Container(
-                                color: Colors.grey[200],
-                                child: const Center(
-                                  child: Icon(Icons.pets,
-                                      size: 100, color: Colors.grey),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-              ),
-
-              // Image indicators
-              if (imageUrls.length > 1)
-                Positioned(
-                  bottom: 16,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
+    // Use the provided scrollController so the DraggableScrollableSheet
+    // can control scrolling. ListView provides a proper scrollable
+    // child that works with the sheet's controller.
+    final screenHeight = MediaQuery.of(context).size.height;
+    return ListView(
+      controller: scrollController,
+      padding: EdgeInsets.zero,
+      children: [
+        // Pet Images Carousel (or placeholder if no images)
+        Stack(
+          children: [
+            SizedBox(
+              // Make the image area responsive: cap to 45% of screen
+              // height but keep the previous 450px as a maximum.
+              height: screenHeight * 0.45 > 450 ? 450 : screenHeight * 0.45,
+              child: imageUrls.isEmpty
+                  ? Container(
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.grey[200],
+                        borderRadius: const BorderRadius.vertical(
+                            bottom: Radius.circular(25)),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: List.generate(
-                          imageUrls.length,
-                          (index) => Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 3),
-                            width: currentImageIndex == index ? 8 : 6,
-                            height: currentImageIndex == index ? 8 : 6,
-                            decoration: BoxDecoration(
-                              color: currentImageIndex == index
-                                  ? Colors.white
-                                  : Colors.white.withOpacity(0.5),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-              // Close button
-              Positioned(
-                top: 16,
-                left: 16,
-                child: GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                        ),
-                      ],
-                    ),
-                    child: const Icon(Icons.arrow_back, size: 24),
-                  ),
-                ),
-              ),
-
-              // Favorite button
-              Positioned(
-                top: 16,
-                right: 16,
-                child: Consumer(
-                  builder: (context, ref, _) {
-                    final favoritesState = ref.watch(favoritesProvider);
-                    final favoritesNotifier =
-                        ref.read(favoritesProvider.notifier);
-                    final isFavorite =
-                        favoritesState.favoriteIds.contains(pet.id);
-                    return GestureDetector(
-                      onTap: () async {
-                        if (isFavorite) {
-                          await favoritesNotifier.removeFavorite(
-                              context, pet.id);
-                        } else {
-                          await favoritesNotifier.addFavorite(context, pet.id);
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 8,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.pets,
+                                size: 100, color: Colors.grey[400]),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No images available',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 16,
+                              ),
                             ),
                           ],
                         ),
-                        child: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
-                          size: 24,
-                          color:
-                              isFavorite ? Colors.red : _getPrimaryColor(pet),
-                        ),
                       ),
-                    );
-                  },
-                ),
-              ),
+                    )
+                  : PageView.builder(
+                      controller: imagePageController,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _currentImageIndices[petIndex] = index;
+                        });
+                      },
+                      itemCount: imageUrls.length,
+                      itemBuilder: (context, index) {
+                        return ClipRRect(
+                          borderRadius: const BorderRadius.vertical(
+                              bottom: Radius.circular(25)),
+                          child: CachedNetworkImage(
+                            imageUrl: imageUrls[index],
+                            height: 450,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: Colors.grey[200],
+                              child: const Center(
+                                  child: CircularProgressIndicator()),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: Colors.grey[200],
+                              child: const Center(
+                                child: Icon(Icons.pets,
+                                    size: 100, color: Colors.grey),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
 
+            // Image indicators
+            if (imageUrls.length > 1)
               Positioned(
-                top: 8,
+                bottom: 16,
                 left: 0,
                 right: 0,
                 child: Center(
-                  child: Column(
-                    children: [
-                      if (widget.pets.length > 1)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 20.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(
-                              widget.pets.length,
-                              (index) => Container(
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 4),
-                                width: _currentIndex == index ? 24 : 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: _currentIndex == index
-                                      ? _getPrimaryColor(
-                                          widget.pets[_currentIndex])
-                                      : Colors.black87,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(
+                        imageUrls.length,
+                        (index) => Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          width: currentImageIndex == index ? 8 : 6,
+                          height: currentImageIndex == index ? 8 : 6,
+                          decoration: BoxDecoration(
+                            color: currentImageIndex == index
+                                ? Colors.white
+                                : Colors.white.withOpacity(0.5),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+            // Close button
+            Positioned(
+              top: 16,
+              left: 16,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.arrow_back, size: 24),
+                ),
+              ),
+            ),
+
+            // Favorite button
+            Positioned(
+              top: 16,
+              right: 16,
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final favoritesState = ref.watch(favoritesProvider);
+                  final favoritesNotifier =
+                      ref.read(favoritesProvider.notifier);
+                  final isFavorite =
+                      favoritesState.favoriteIds.contains(pet.id);
+                  return GestureDetector(
+                    onTap: () async {
+                      if (isFavorite) {
+                        await favoritesNotifier.removeFavorite(context, pet.id);
+                      } else {
+                        await favoritesNotifier.addFavorite(context, pet.id);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        size: 24,
+                        color: isFavorite ? Colors.red : _getPrimaryColor(pet),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            Positioned(
+              top: 8,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Column(
+                  children: [
+                    if (widget.pets.length > 1)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            widget.pets.length,
+                            (index) => Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              width: _currentIndex == index ? 24 : 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: _currentIndex == index
+                                    ? _getPrimaryColor(
+                                        widget.pets[_currentIndex])
+                                    : Colors.black87,
+                                borderRadius: BorderRadius.circular(4),
                               ),
                             ),
                           ),
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
+        ),
 
-          // Pet Info Section
-          Padding(
+        // Pet Info Section
+        Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -392,27 +396,25 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
                         ),
                       ),
                       padding: const EdgeInsets.all(12),
-                      child: Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Quirk',
-                              style: GoogleFonts.newsreader(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                              ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Quirk',
+                            style: GoogleFonts.newsreader(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              pet.quirks!,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium!
-                                  .copyWith(fontSize: 14),
-                            ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            pet.quirks!,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium!
+                                .copyWith(fontSize: 14),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -478,10 +480,8 @@ class _PetDetailsModalState extends State<PetDetailsModal> {
                 // Temperament
                 _buildCharacteristicsSection(pet),
               ],
-            ),
-          ),
-        ],
-      ),
+            )),
+      ],
     );
   }
 

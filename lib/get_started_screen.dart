@@ -137,7 +137,7 @@ class _GetStartedScreenState extends State<GetStartedScreen>
                       ),
                       SizedBox(height: isSmallScreen ? 12 : 16),
                       Text(
-                        "PetMatch connects people and pets through smart, caring technology—helping adopters discover the perfect furry friend while giving every animal the chance to find a loving home.",
+                        "PersoniPet connects people and pets through smart, caring technology—helping adopters discover the perfect furry friend while giving every animal the chance to find a loving home.",
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               fontSize: isSmallScreen ? 13 : 14,
