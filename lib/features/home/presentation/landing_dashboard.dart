@@ -103,7 +103,8 @@ class _LandingDashboardState extends ConsumerState<LandingDashboard> {
                 },
                 child: ListView(
                   controller: _scrollController,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                   children: [
                     _buildHeader(userName),
                     const SizedBox(height: 20),

@@ -173,12 +173,12 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
 
     switch (petPreference.toLowerCase()) {
       case 'cat':
-        return 'What size cat\ndo you prefer?';
+        return 'What size of cat\ndo you prefer?';
       case 'dog':
-        return 'What size dog\ndo you prefer?';
+        return 'What size of dog\ndo you prefer?';
       case 'no preference':
       default:
-        return 'What size pet\ndo you prefer?';
+        return 'What size of pet\ndo you prefer?';
     }
   }
 
@@ -284,10 +284,10 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
                     SizedBox(
                       height: getResponsiveValue(
                         context,
-                        verySmall: 8,
-                        small: 9,
-                        medium: 10,
-                        large: 12,
+                        verySmall: 20,
+                        small: 30,
+                        medium: 40,
+                        large: 50,
                       ),
                     ),
 
@@ -432,14 +432,14 @@ class _SizePreferenceScreenState extends ConsumerState<SizePreferenceScreen> {
                   Align(
                     alignment: Alignment.topCenter,
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 20),
+                      padding: const EdgeInsets.only(top: 30),
                       child: SizedBox(
                         height: getResponsiveValue(
                           context,
-                          verySmall: 220,
-                          small: 300,
-                          medium: 370,
-                          large: 340,
+                          verySmall: 180,
+                          small: 230,
+                          medium: 280,
+                          large: 330,
                         ),
                         child: Image.asset(
                           level['image'],

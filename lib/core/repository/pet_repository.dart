@@ -95,6 +95,7 @@ class PetRepository {
     required String gender,
     required String size,
     required String status,
+    required String description,
     required File? thumbnailImage,
     required List<File> selectedImages,
     // Health Information
@@ -178,6 +179,7 @@ class PetRepository {
         'gender': gender,
         'size': size,
         'status': _capitalize(status),
+        'description': description,
         'thumbnail_path': thumbnailPath,
         'is_adopted': false,
         'created_at': DateTime.now().toIso8601String(),

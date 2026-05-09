@@ -97,6 +97,7 @@ class PetNotifier extends Notifier<PetState> {
     required String gender,
     required String size,
     required String status,
+    required String description,
     required File? thumbnailImage,
     required List<File> selectedImages,
     // Health Information
@@ -137,6 +138,7 @@ class PetNotifier extends Notifier<PetState> {
         gender: gender,
         size: size,
         status: status,
+        description: description,
         thumbnailImage: thumbnailImage,
         selectedImages: selectedImages,
         isVaccinationUpToDate: isVaccinationUpToDate,

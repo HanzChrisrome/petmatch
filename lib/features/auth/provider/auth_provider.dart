@@ -56,6 +56,10 @@ class AuthNotifier extends Notifier<UserAuthState> {
 
   Future<void> signIn(
       BuildContext context, String email, String password) async {
+    // Trim inputs to remove whitespace
+    email = email.trim();
+    password = password.trim();
+
     NotifierHelper.logMessage('Locked out time: ${state.lockoutTime}');
     NotifierHelper.logMessage('Is logging in: ${state.isLoggingIn}');
 
@@ -158,6 +162,12 @@ class AuthNotifier extends Notifier<UserAuthState> {
     String username,
     String confirmPassword,
   ) async {
+    // Trim all inputs to remove whitespace
+    email = email.trim();
+    password = password.trim();
+    username = username.trim();
+    confirmPassword = confirmPassword.trim();
+
     if (email.isEmpty ||
         password.isEmpty ||
         username.isEmpty ||
@@ -256,7 +266,7 @@ class AuthNotifier extends Notifier<UserAuthState> {
 
   Future<void> requestResetPassword(BuildContext context,
       [String? email]) async {
-    final emailToUse = email ?? state.userEmail;
+    final emailToUse = (email ?? state.userEmail)?.trim();
 
     if (emailToUse == null || emailToUse.isEmpty) {
       NotifierHelper.showErrorToast(context, 'Email is required.');
@@ -266,12 +276,24 @@ class AuthNotifier extends Notifier<UserAuthState> {
     try {
       state = state.copyWith(isRequestingChange: true);
 
-      NotifierHelper.showLoadingToast(context, 'Requesting reset link');
-      await supabase.auth.resetPasswordForEmail(emailToUse,
-          redirectTo: 'soiltrack://reset-password');
+      NotifierHelper.showLoadingToast(context, 'Sending reset link');
 
+      // Send password reset email with web URL that supports universal links
+      await supabase.auth.resetPasswordForEmail(
+        emailToUse,
+        redirectTo:
+            'https://petmatch-nine.vercel.app/reset-password?email=${Uri.encodeComponent(emailToUse)}',
+      );
+
+      // Store email for the flow
+      state = state.copyWith(userEmail: emailToUse);
+
+      NotifierHelper.closeToast(context);
       NotifierHelper.showSuccessToast(
-          context, 'Password reset link sent to your email.');
+          context, 'Reset link sent! Check your email and click the link.');
+
+      // Go back to previous screen
+      Navigator.of(context).pop();
     } catch (e) {
       NotifierHelper.showErrorToast(context, 'Error: ${e.toString()}');
     } finally {
@@ -289,18 +311,28 @@ class AuthNotifier extends Notifier<UserAuthState> {
       NotifierHelper.showLoadingToast(context, 'Changing password');
 
       if (state.isAuthenticated) {
+        // User is already logged in, just update password
         await supabase.auth.updateUser(UserAttributes(password: newPassword));
       } else {
-        await supabase.auth
-            .verifyOTP(email: email, type: OtpType.recovery, token: token);
+        // For password reset via email link, the token is automatically handled
+        // Just update the password
         await supabase.auth.updateUser(UserAttributes(password: newPassword));
       }
 
       NotifierHelper.closeToast(context);
-      context.go('/password-changed');
+      NotifierHelper.showSuccessToast(
+          context, 'Password changed successfully!');
+
+      // Sign out and navigate to login
+      await supabase.auth.signOut();
+      context.go('/login');
     } catch (e) {
       if (e is AuthException && e.message.contains('expired')) {
-        NotifierHelper.showErrorToast(context, 'Your reset link has expired.');
+        NotifierHelper.showErrorToast(
+            context, 'Your reset link has expired. Please request a new one.');
+      } else if (e is AuthException && e.message.contains('Invalid')) {
+        NotifierHelper.showErrorToast(
+            context, 'Invalid or expired link. Please request a new one.');
       } else {
         NotifierHelper.showErrorToast(context, 'Error: ${e.toString()}');
       }
@@ -359,6 +391,10 @@ class AuthNotifier extends Notifier<UserAuthState> {
 
   Future<void> resendEmailVerification(
       BuildContext context, String email, String password) async {
+    // Trim inputs to remove whitespace
+    email = email.trim();
+    password = password.trim();
+
     try {
       NotifierHelper.showLoadingToast(
           context, 'Resending verification email...');

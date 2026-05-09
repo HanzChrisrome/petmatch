@@ -187,10 +187,10 @@ class _PetPreferenceScreenState extends ConsumerState<PetPreferenceScreen> {
                     SizedBox(
                       height: getResponsiveValue(
                         context,
-                        verySmall: 8,
-                        small: 9,
-                        medium: 10,
-                        large: 12,
+                        verySmall: 20,
+                        small: 30,
+                        medium: 40,
+                        large: 50,
                       ),
                     ),
 
@@ -295,166 +295,147 @@ class _PetPreferenceScreenState extends ConsumerState<PetPreferenceScreen> {
   }
 
   Widget _buildSwipeableCards(double screenHeight) {
-    return SizedBox(
-      height: getResponsiveValue(
-        context,
-        verySmall: screenHeight * 0.5,
-        small: screenHeight * 0.52,
-        medium: screenHeight * 0.54,
-        large: screenHeight * 0.55,
-      ),
-      child: PageView.builder(
-        controller: PageController(
-          viewportFraction: 0.85,
-          initialPage: _selectedPetValue.round() - 1,
-        ),
-        onPageChanged: (index) {
-          setState(() {
-            _selectedPetValue = (index + 1).toDouble();
-          });
-        },
-        itemCount: _petOptions.length,
-        itemBuilder: (context, index) {
-          final level = _petOptions[index];
-          final isActive = _selectedPetValue.round() == level['value'];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxWidth = constraints.maxWidth;
+        final isCompact =
+            maxWidth < 380 || MediaQuery.of(context).size.height < 720;
 
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            margin: EdgeInsets.symmetric(
-              horizontal: 8,
-              vertical: isActive ? 0 : 16,
+        final cardHeight = getResponsiveValue(
+          context,
+          verySmall: screenHeight * (isCompact ? 0.42 : 0.5),
+          small: screenHeight * (isCompact ? 0.44 : 0.52),
+          medium: screenHeight * (isCompact ? 0.46 : 0.54),
+          large: screenHeight * (isCompact ? 0.48 : 0.55),
+        );
+
+        final viewportFraction = isCompact ? 0.92 : 0.85;
+
+        return SizedBox(
+          height: cardHeight,
+          child: PageView.builder(
+            controller: PageController(
+              viewportFraction: viewportFraction,
+              initialPage: _selectedPetValue.round() - 1,
             ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              color: level['color'],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: Stack(
-                children: [
-                  Align(
-                    alignment: level['value'] == 2
-                        ? Alignment.topLeft
-                        : Alignment.topCenter,
-                    child: Padding(
-                      padding: level['value'] == 2
-                          ? const EdgeInsets.only(top: 24, left: 32)
-                          : const EdgeInsets.only(top: 20),
-                      child: SizedBox(
-                        height: getResponsiveValue(
-                          context,
-                          verySmall: 180,
-                          small: 240,
-                          medium: 300,
-                          large: 330,
-                        ),
-                        child: Image.asset(
-                          level['image'],
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: level['color'].withOpacity(0.1),
-                              child: Center(
-                                child: Text(
-                                  level['emoji'],
-                                  style: TextStyle(
-                                    fontSize: getResponsiveValue(
-                                      context,
-                                      verySmall: 36,
-                                      small: 44,
-                                      medium: 54,
-                                      large: 64,
+            onPageChanged: (index) {
+              setState(() {
+                _selectedPetValue = (index + 1).toDouble();
+              });
+            },
+            itemCount: _petOptions.length,
+            itemBuilder: (context, index) {
+              final level = _petOptions[index];
+              final isActive = _selectedPetValue.round() == level['value'];
+
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                margin: EdgeInsets.symmetric(
+                  horizontal: isCompact ? 6 : 8,
+                  vertical: isActive ? 0 : (isCompact ? 10 : 16),
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: level['color'],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Stack(
+                    children: [
+                      Align(
+                        alignment: level['value'] == 2
+                            ? Alignment.topLeft
+                            : Alignment.topCenter,
+                        child: Padding(
+                          padding: level['value'] == 2
+                              ? const EdgeInsets.only(top: 18, left: 20)
+                              : const EdgeInsets.only(top: 12),
+                          child: SizedBox(
+                            height: isCompact
+                                ? screenHeight * 0.24
+                                : getResponsiveValue(
+                                    context,
+                                    verySmall: 180,
+                                    small: 240,
+                                    medium: 300,
+                                    large: 330,
+                                  ),
+                            child: Image.asset(
+                              level['image'],
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: level['color'].withOpacity(0.08),
+                                  child: Center(
+                                    child: Text(
+                                      level['emoji'],
+                                      style: TextStyle(
+                                        fontSize: getResponsiveValue(
+                                          context,
+                                          verySmall: 32,
+                                          small: 40,
+                                          medium: 54,
+                                          large: 64,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
-                            );
-                          },
+                                );
+                              },
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  // Label and description at the bottom
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                          bottom: 32, left: 24, right: 24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 4),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.8),
-                                width: 1.5,
-                              ),
-                            ),
-                            child: Text(
-                              level['label'],
-                              style: GoogleFonts.newsreader(
-                                fontSize: isActive
-                                    ? getResponsiveValue(
-                                        context,
-                                        verySmall: 16,
-                                        small: 18,
-                                        medium: 20,
-                                        large: 22,
-                                      )
-                                    : getResponsiveValue(
-                                        context,
-                                        verySmall: 12,
-                                        small: 13,
-                                        medium: 14,
-                                        large: 16,
-                                      ),
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                letterSpacing: -0.5,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
+                      // Label and description at the bottom
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            bottom: isCompact ? 24 : 32,
+                            left: isCompact ? 16 : 24,
+                            right: isCompact ? 16 : 24,
                           ),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            width: 300,
-                            child: Text(
-                              level['description'],
-                              style: TextStyle(
-                                fontSize: isActive
-                                    ? getResponsiveValue(
-                                        context,
-                                        verySmall: 13,
-                                        small: 14,
-                                        medium: 15,
-                                        large: 16,
-                                      )
-                                    : getResponsiveValue(
-                                        context,
-                                        verySmall: 11,
-                                        small: 12,
-                                        medium: 13,
-                                        large: 14,
-                                      ),
-                                color: Colors.white.withOpacity(0.85),
-                                fontWeight: FontWeight.w400,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: isCompact ? maxWidth * 0.85 : 300,
+                                child: Text(
+                                  level['description'],
+                                  style: TextStyle(
+                                    fontSize: isActive
+                                        ? getResponsiveValue(
+                                            context,
+                                            verySmall: 13,
+                                            small: 14,
+                                            medium: 15,
+                                            large: 16,
+                                          )
+                                        : getResponsiveValue(
+                                            context,
+                                            verySmall: 11,
+                                            small: 12,
+                                            medium: 13,
+                                            large: 14,
+                                          ),
+                                    color: Colors.white.withOpacity(0.9),
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-                              textAlign: TextAlign.center,
-                            ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 

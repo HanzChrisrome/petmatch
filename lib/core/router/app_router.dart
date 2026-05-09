@@ -26,5 +26,26 @@ final routerProvider = Provider<GoRouter>((ref) {
       ...onboardingRoutes,
       ...adminRoutes,
     ],
+    // Handle deep links with custom scheme
+    redirect: (context, state) {
+      final uri = state.uri;
+
+      // Handle petmatch:// scheme deep links
+      if (uri.scheme == 'petmatch') {
+        // Extract the path and query parameters
+        final path = uri.path;
+        final queryParams = uri.queryParameters;
+
+        // Redirect to the appropriate route
+        if (path.contains('reset-password')) {
+          final email = queryParams['email'] ?? '';
+          final token =
+              queryParams['token'] ?? queryParams['access_token'] ?? '';
+          return '/reset-password?email=$email&token=$token';
+        }
+      }
+
+      return null; // No redirect needed
+    },
   );
 });

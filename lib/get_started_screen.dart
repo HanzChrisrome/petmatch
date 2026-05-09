@@ -87,119 +87,129 @@ class _GetStartedScreenState extends State<GetStartedScreen>
 
           // Main content with dog (on top)
           Positioned.fill(
-            child: Column(
-              children: [
-                SizedBox(height: isSmallScreen ? 40 : 80),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final localIsSmall = constraints.maxHeight < 700;
 
-                Image.asset(
-                  "assets/petmatch_logo.png",
-                  height: isSmallScreen ? 100 : 140,
-                ),
+                return Column(
+                  children: [
+                    SizedBox(height: localIsSmall ? 40 : 80),
 
-                SizedBox(height: isSmallScreen ? 16 : 24),
+                    Image.asset(
+                      "assets/petmatch_logo.png",
+                      height: localIsSmall ? 100 : 140,
+                    ),
 
-                // Tagline
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: Column(
-                    children: [
-                      RichText(
-                        textAlign: TextAlign.center,
-                        text: TextSpan(
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
-                              ?.copyWith(
-                                fontSize: isSmallScreen ? 28 : 34,
-                                color: Theme.of(context).colorScheme.secondary,
-                                height: 1.2,
-                                fontWeight: FontWeight.bold,
-                              ),
-                          children: [
-                            const TextSpan(text: "Where "),
-                            TextSpan(
-                              text: "companions",
+                    SizedBox(height: localIsSmall ? 12 : 24),
+
+                    // Tagline and description
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Column(
+                        children: [
+                          RichText(
+                            textAlign: TextAlign.center,
+                            text: TextSpan(
                               style: Theme.of(context)
                                   .textTheme
                                   .headlineMedium
                                   ?.copyWith(
-                                    fontSize: isSmallScreen ? 28 : 34,
+                                    fontSize: localIsSmall ? 26 : 34,
                                     color:
-                                        Theme.of(context).colorScheme.onSurface,
+                                        Theme.of(context).colorScheme.secondary,
                                     height: 1.2,
-                                    fontWeight: FontWeight.w900,
-                                    fontStyle: FontStyle.italic,
+                                    fontWeight: FontWeight.bold,
                                   ),
+                              children: [
+                                const TextSpan(text: "Where "),
+                                TextSpan(
+                                  text: "companions",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineMedium
+                                      ?.copyWith(
+                                        fontSize: localIsSmall ? 26 : 34,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
+                                        height: 1.2,
+                                        fontWeight: FontWeight.w900,
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                ),
+                                const TextSpan(text: "\nfind each other."),
+                              ],
                             ),
-                            const TextSpan(text: "\nfind each other."),
+                          ),
+                          SizedBox(height: localIsSmall ? 10 : 16),
+                          Text(
+                            "PersoniPet connects people and pets through smart, caring technology—helping adopters discover the perfect furry friend.",
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  fontSize: localIsSmall ? 13 : 14,
+                                  color: const Color(0xFF666666),
+                                  height: 1.6,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: localIsSmall ? 16 : 28),
+
+                    CustomButton(
+                      label: 'Create Account',
+                      onPressed: () {
+                        context.push('/register');
+                      },
+                      icon: Icons.pets,
+                      backgroundColor: const Color.fromARGB(255, 24, 24, 24),
+                      verticalPadding: localIsSmall ? 12 : 14,
+                    ),
+
+                    SizedBox(height: localIsSmall ? 10 : 16),
+
+                    GestureDetector(
+                      onTap: () {
+                        context.push('/login');
+                      },
+                      child: Text.rich(
+                        TextSpan(
+                          text: "I already have an account, ",
+                          style: TextStyle(
+                              color: const Color(0xFF666666),
+                              fontSize: localIsSmall ? 13 : 14),
+                          children: [
+                            TextSpan(
+                              text: "Sign in",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                      SizedBox(height: isSmallScreen ? 12 : 16),
-                      Text(
-                        "PersoniPet connects people and pets through smart, caring technology—helping adopters discover the perfect furry friend while giving every animal the chance to find a loving home.",
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontSize: isSmallScreen ? 13 : 14,
-                              color: const Color(0xFF666666),
-                              height: 1.6,
-                            ),
-                        // style: TextStyle(
-                        //   fontSize: 14,
-                        //   color: Color(0xFF666666),
-                        //   height: 1.6,
-                        // ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                SizedBox(height: isSmallScreen ? 20 : 30),
-
-                CustomButton(
-                  label: 'Create Account',
-                  onPressed: () {
-                    context.push('/register');
-                  },
-                  icon: Icons.pets,
-                  backgroundColor: const Color.fromARGB(255, 24, 24, 24),
-                  verticalPadding: isSmallScreen ? 12 : 14,
-                ),
-
-                SizedBox(height: isSmallScreen ? 12 : 16),
-
-                GestureDetector(
-                  onTap: () {
-                    context.push('/login');
-                  },
-                  child: Text.rich(
-                    TextSpan(
-                      text: "I already have an account, ",
-                      style: TextStyle(
-                          color: const Color(0xFF666666),
-                          fontSize: isSmallScreen ? 13 : 14),
-                      children: [
-                        TextSpan(
-                          text: "Sign in",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onPrimary,
-                          ),
-                        ),
-                      ],
                     ),
-                  ),
-                ),
 
-                const Spacer(),
-
-                Image.asset(
-                  "assets/get_started_screen/dog.png",
-                  fit: BoxFit.contain,
-                  alignment: Alignment.bottomCenter,
-                  height: isSmallScreen ? 210 : 330,
-                ),
-              ],
+                    // Flexible bottom image so the column won't overflow
+                    Flexible(
+                      flex: 2,
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Image.asset(
+                          "assets/get_started_screen/dog.png",
+                          fit: BoxFit.contain,
+                          height: localIsSmall ? 210 : 330,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ],

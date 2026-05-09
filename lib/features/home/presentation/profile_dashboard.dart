@@ -53,17 +53,55 @@ class _ProfileDashboardState extends ConsumerState<ProfileDashboard> {
 
   Future<void> _loadUserProfile() async {
     setState(() => _isLoading = true);
-    await ref.read(userProfileProvider.notifier).loadUserProfile();
-    setState(() => _isLoading = false);
+    try {
+      await ref.read(userProfileProvider.notifier).loadUserProfile();
+    } catch (e) {
+      debugPrint('Error loading profile: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load profile: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final profile = ref.watch(userProfileProvider);
-
     final authState = ref.watch(authProvider);
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
+
+    // Show loading indicator while profile is loading
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          title: const Text(
+            'My Profile',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+        bottomNavigationBar: const CustomBottomNav(currentIndex: 3),
+      );
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,

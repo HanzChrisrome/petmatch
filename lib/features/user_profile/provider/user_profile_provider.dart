@@ -32,6 +32,19 @@ class UserProfileNotifier extends Notifier<UserProfileState> {
   void updatePetPreference(String preference) {
     state = state.copyWith(petPreference: preference);
     _logState('Pet preference updated: $preference');
+
+    // Persist change immediately for edit flows
+    try {
+      _repository.updatePersonalityTrait(
+        userId,
+        'user_lifestyle',
+        'pet_preference',
+        preference,
+      );
+      print('✅ Pet preference persisted for user $userId');
+    } catch (e) {
+      print('❌ Failed to persist pet preference: $e');
+    }
   }
 
   void setActivityLevel(BuildContext context, int level, String label) {

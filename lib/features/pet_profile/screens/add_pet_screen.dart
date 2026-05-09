@@ -230,6 +230,7 @@ class _AddPetScreenState extends ConsumerState<AddPetScreen> {
               gender: _capitalize(_selectedGender),
               size: _selectedSize!,
               status: _capitalize(_selectedStatus, defaultValue: 'Available'),
+              description: _descriptionController.text.trim(),
               thumbnailImage: _thumbnailImage,
               selectedImages: _selectedImages,
               isVaccinationUpToDate: _isVaccinationUpToDate,
